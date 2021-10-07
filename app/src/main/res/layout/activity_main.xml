@@ -18,13 +18,8 @@
             android:ems="10"
             android:textSize="20sp"
             android:inputType="text"
+            android:imeOptions="actionSearch"
             android:hint="@string/search_field" />
-
-        <Button
-            android:id="@+id/search_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/search_button" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/search_result_fragment_container"

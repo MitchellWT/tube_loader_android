@@ -1,6 +1,7 @@
 package com.mitchelltsutsulis.tube_loader.fragment
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -10,10 +11,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.mitchelltsutsulis.tube_loader.R
-import com.mitchelltsutsulis.tube_loader.Thumbnail
-import com.mitchelltsutsulis.tube_loader.Video
-import com.mitchelltsutsulis.tube_loader.VideoAdapter
+import com.mitchelltsutsulis.tube_loader.*
 import okhttp3.*
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -87,17 +85,19 @@ class SearchResultFragment(): Fragment() {
             val thumbnail = snippet.getJSONObject("thumbnails").getJSONObject("high")
             val url = URL(thumbnail.getString("url"))
             searchResults.add(Video(videoId, title,
-                Thumbnail(BitmapFactory.decodeStream(url.openConnection().getInputStream()),
-                          thumbnail.getString("url"),
+                Thumbnail(thumbnail.getString("url"),
                           thumbnail.getString("width"),
                           thumbnail.getString("height"))))
+
+            val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+            (activity?.application as App).storeBitmap(videoId, bitmap)
         }
     }
 
     private fun updateRecycler() {
         val videoRecycler = view?.findViewById<RecyclerView>(R.id.video_recycler)
-        val layoutManager = LinearLayoutManager(activity?.applicationContext)
-        val videoAdapter = VideoAdapter(searchResults) {test(it)}
+        val layoutManager = LinearLayoutManager(context)
+        val videoAdapter = VideoAdapter(searchResults, activity?.application) {videoActivity(it)}
 
         videoRecycler?.let {
             it.layoutManager = layoutManager
@@ -105,7 +105,11 @@ class SearchResultFragment(): Fragment() {
         }
     }
 
-    private fun test(item: Video) {
-        Log.i("TESTINGO", item.videoId)
+    private fun videoActivity(item: Video) {
+        val videoIntent = Intent(context, VideoActivity::class.java).apply {
+            putExtra("video", item)
+        }
+
+        startActivity(videoIntent)
     }
 }
