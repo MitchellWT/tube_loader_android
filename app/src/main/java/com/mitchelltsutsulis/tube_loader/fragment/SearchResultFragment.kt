@@ -1,7 +1,5 @@
 package com.mitchelltsutsulis.tube_loader.fragment
 
-import android.app.Activity
-import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -19,10 +17,9 @@ import org.json.JSONTokener
 import java.io.IOException
 import java.net.URL
 
-class SearchResultFragment(): Fragment() {
+class SearchResultFragment: Fragment() {
     private val httpClient = OkHttpClient()
     private var queryURL: String? = null
-    private val searchResults = mutableListOf<Video>()
     private val videoContract = registerForActivityResult(VideoActivity.Contract()) { status_code ->
         activity?.let {
             val text = when(status_code) {
@@ -33,10 +30,10 @@ class SearchResultFragment(): Fragment() {
 
             if (text != "300") {
                 Snackbar.make(
-                    it.findViewById(R.id.activity_main),
+                    it.findViewById(R.id.search_fragment),
                     text,
                     Snackbar.LENGTH_SHORT
-                ).show()
+                ).setAnchorView(it.findViewById(R.id.bottom_navigation_bar)).show()
             }
         }
     }
@@ -82,9 +79,9 @@ class SearchResultFragment(): Fragment() {
                 override fun onResponse(call: Call, response: Response) {
                     response.use { res ->
                         if (!res.isSuccessful) throw IOException("ERROR: $res")
-                        jsonConversion(res.body!!.string())
+                        val searchResults = jsonConversion(res.body!!.string())
                         requireActivity().runOnUiThread {
-                            updateRecycler()
+                            updateRecycler(searchResults)
                         }
                     }
                 }
@@ -92,7 +89,8 @@ class SearchResultFragment(): Fragment() {
         }
     }
 
-    private fun jsonConversion(jsonString: String) {
+    private fun jsonConversion(jsonString: String): List<Video> {
+        val searchResults = mutableListOf<Video>()
         val itemsJsonArray = (JSONTokener(jsonString).nextValue() as JSONObject)
             .getJSONArray("items")
 
@@ -110,12 +108,14 @@ class SearchResultFragment(): Fragment() {
             val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
             (activity?.application as App).storeBitmap(videoId, bitmap)
         }
+
+        return searchResults
     }
 
-    private fun updateRecycler() {
+    private fun updateRecycler(searchResults: List<Video>) {
         val videoRecycler = view?.findViewById<RecyclerView>(R.id.video_recycler)
         val layoutManager = LinearLayoutManager(context)
-        val videoAdapter = VideoAdapter(searchResults, activity?.application) {videoActivity(it)}
+        val videoAdapter = VideoSearchAdapter(searchResults, activity?.application) {videoActivity(it)}
 
         videoRecycler?.let {
             it.layoutManager = layoutManager

@@ -3,7 +3,14 @@
     <string name="search_field">Search</string>
     <string name="queue_checkbox">Queue Video</string>
     <string name="add_video">Add 2 System</string>
-
+    <string name="search_menu">Search</string>
+    <string name="queue_menu">Queue</string>
+    <string name="download_menu">Downloaded</string>
     <string name="server_ip">192.168.1.20:8000</string>
     <string name="api_token">1|ObdqQwDe15jLSg7mg98QvukvKsrYvMFxFo6trsMu</string>
+    <string name="queued_button">QUEUED</string>
+    <string name="un_queued_button">UN-QUEUED</string>
+    <string name="delete_button">DELETE</string>
+    <string name="queue_stop">Queue Stopped</string>
+    <string name="queue_running">Queue Running</string>
 </resources>

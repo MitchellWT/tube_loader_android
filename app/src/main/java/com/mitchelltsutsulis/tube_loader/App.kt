@@ -28,4 +28,15 @@ class App: Application() {
             imageView.setImageBitmap(it)
         }
     }
+
+    fun checkBitmap(bitmapKey: String): Boolean {
+        val bitmap: Bitmap? = thumbnailCache.get(bitmapKey)
+        var found = false
+
+        bitmap?.let {
+            found = true
+        }
+
+        return found
+    }
 }
