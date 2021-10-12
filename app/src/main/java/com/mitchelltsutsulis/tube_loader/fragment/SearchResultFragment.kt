@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.mitchelltsutsulis.tube_loader.*
 import okhttp3.*
 import org.json.JSONObject
@@ -22,6 +23,23 @@ class SearchResultFragment(): Fragment() {
     private val httpClient = OkHttpClient()
     private var queryURL: String? = null
     private val searchResults = mutableListOf<Video>()
+    private val videoContract = registerForActivityResult(VideoActivity.Contract()) { status_code ->
+        activity?.let {
+            val text = when(status_code) {
+                201 -> "Video added!"
+                300 -> "300"
+                else -> "Unknown error occurred, try again!"
+            }
+
+            if (text != "300") {
+                Snackbar.make(
+                    it.findViewById(R.id.activity_main),
+                    text,
+                    Snackbar.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,9 +80,9 @@ class SearchResultFragment(): Fragment() {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    response.use {
-                        if (!response.isSuccessful) throw IOException("ERROR: $response")
-                        jsonConversion(response.body!!.string())
+                    response.use { res ->
+                        if (!res.isSuccessful) throw IOException("ERROR: $res")
+                        jsonConversion(res.body!!.string())
                         requireActivity().runOnUiThread {
                             updateRecycler()
                         }
@@ -106,10 +124,6 @@ class SearchResultFragment(): Fragment() {
     }
 
     private fun videoActivity(item: Video) {
-        val videoIntent = Intent(context, VideoActivity::class.java).apply {
-            putExtra("video", item)
-        }
-
-        startActivity(videoIntent)
+        videoContract.launch(item)
     }
 }

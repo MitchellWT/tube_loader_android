@@ -5,4 +5,4 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Video(val videoId: String, val title: String,
-                 var thumbnail: Thumbnail): Parcelable
+                 val thumbnail: Thumbnail): Parcelable
