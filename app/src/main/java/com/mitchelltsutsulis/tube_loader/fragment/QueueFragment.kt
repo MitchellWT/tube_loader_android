@@ -11,6 +11,9 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mitchelltsutsulis.tube_loader.*
+import com.mitchelltsutsulis.tube_loader.adapter.VideoQueueAdapter
+import com.mitchelltsutsulis.tube_loader.model.Thumbnail
+import com.mitchelltsutsulis.tube_loader.model.Video
 import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONTokener
@@ -70,6 +73,8 @@ class QueueFragment : Fragment() {
         val queueResults = mutableListOf<Video>()
         val itemsJsonArray = JSONTokener(jsonString).nextValue() as JSONArray
 
+        Log.i("TESTINGO", jsonString);
+
         for (i in 0 until itemsJsonArray.length()) {
             val downloaded = itemsJsonArray.getJSONObject(i).getBoolean("downloaded")
 
@@ -77,11 +82,16 @@ class QueueFragment : Fragment() {
                 val videoId = itemsJsonArray.getJSONObject(i).getString("video_id")
                 val title = itemsJsonArray.getJSONObject(i).getString("title")
                 val queued = itemsJsonArray.getJSONObject(i).getBoolean("queued")
+                val backendId = itemsJsonArray.getJSONObject(i).getInt("id")
                 val thumbnailUrl = itemsJsonArray.getJSONObject(i).getString("thumbnail")
                 val url = URL(thumbnailUrl)
 
-                queueResults.add(Video(videoId, title,
-                    Thumbnail(thumbnailUrl), queued))
+                queueResults.add(
+                    Video(videoId, title,
+                    Thumbnail(thumbnailUrl),
+                    queued,
+                    backendId = backendId)
+                )
 
                 if (!((activity?.application as App).checkBitmap(videoId))) {
                     val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())

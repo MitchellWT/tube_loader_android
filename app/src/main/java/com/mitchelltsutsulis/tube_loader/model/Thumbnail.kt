@@ -1,6 +1,5 @@
-package com.mitchelltsutsulis.tube_loader
+package com.mitchelltsutsulis.tube_loader.model
 
-import android.graphics.Bitmap
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 

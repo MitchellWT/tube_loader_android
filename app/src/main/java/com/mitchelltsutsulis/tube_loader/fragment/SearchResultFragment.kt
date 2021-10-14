@@ -11,6 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.mitchelltsutsulis.tube_loader.*
+import com.mitchelltsutsulis.tube_loader.adapter.VideoSearchAdapter
+import com.mitchelltsutsulis.tube_loader.model.Thumbnail
+import com.mitchelltsutsulis.tube_loader.model.Video
 import okhttp3.*
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -100,10 +103,13 @@ class SearchResultFragment: Fragment() {
             val title = snippet.getString("title")
             val thumbnail = snippet.getJSONObject("thumbnails").getJSONObject("high")
             val url = URL(thumbnail.getString("url"))
-            searchResults.add(Video(videoId, title,
+            searchResults.add(
+                Video(videoId, title,
                 Thumbnail(thumbnail.getString("url"),
                           thumbnail.getString("width"),
-                          thumbnail.getString("height"))))
+                          thumbnail.getString("height"))
+                )
+            )
 
             val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
             (activity?.application as App).storeBitmap(videoId, bitmap)

@@ -10,7 +10,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.mitchelltsutsulis.tube_loader.*
+import com.mitchelltsutsulis.tube_loader.adapter.VideoDownloadedAdapter
+import com.mitchelltsutsulis.tube_loader.model.Thumbnail
+import com.mitchelltsutsulis.tube_loader.model.Video
 import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONTokener
@@ -19,6 +23,7 @@ import java.net.URL
 
 class DownloadedFragment : Fragment() {
     private val httpClient = OkHttpClient()
+    private lateinit var videoAdapter: VideoDownloadedAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -77,11 +82,16 @@ class DownloadedFragment : Fragment() {
             if (downloaded && !queued) {
                 val videoId = itemsJsonArray.getJSONObject(i).getString("video_id")
                 val title = itemsJsonArray.getJSONObject(i).getString("title")
+                val backendId = itemsJsonArray.getJSONObject(i).getInt("id")
                 val thumbnailUrl = itemsJsonArray.getJSONObject(i).getString("thumbnail")
                 val url = URL(thumbnailUrl)
 
-                downloadedResults.add(Video(videoId, title,
-                    Thumbnail(thumbnailUrl), queued, downloaded))
+                downloadedResults.add(
+                    Video(videoId, title,
+                    Thumbnail(thumbnailUrl),
+                    downloaded = downloaded,
+                    backendId = backendId)
+                )
 
                 if (!((activity?.application as App).checkBitmap(videoId))) {
                     val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
@@ -96,7 +106,7 @@ class DownloadedFragment : Fragment() {
     private fun updateRecycler(downloadedResults: List<Video>) {
         val videoRecycler = view?.findViewById<RecyclerView>(R.id.delete_recycler)
         val layoutManager = LinearLayoutManager(context)
-        val videoAdapter = VideoDownloadedAdapter(downloadedResults, activity?.application) {deleteVideo(it)}
+        videoAdapter = VideoDownloadedAdapter(downloadedResults as MutableList<Video>, activity?.application) {deleteVideo(it)}
 
         videoRecycler?.let {
             it.layoutManager = layoutManager
@@ -105,6 +115,47 @@ class DownloadedFragment : Fragment() {
     }
 
     private fun deleteVideo(item: Video) {
-        Log.i("TESTINGO", "DELETE")
+        val urlBuilder = Uri.Builder()
+            .scheme("http")
+            .encodedAuthority(getString(R.string.server_ip))
+            .appendPath("api")
+            .appendPath("videos")
+        val deleteUrl = urlBuilder.build().toString()
+
+        val requestBody = FormBody.Builder()
+            .add("id", item.backendId.toString())
+            .build()
+
+        val request = Request.Builder()
+            .method("DELETE",  requestBody)
+            .header("Authorization", "Bearer " + getString(R.string.api_token))
+            .url(deleteUrl)
+            .build()
+
+        httpClient.newCall(request).enqueue(object: Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.i("DELETE REQUEST FAILED", e.printStackTrace().toString())
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use { res ->
+                    if (!res.isSuccessful) throw IOException("ERROR: $res")
+                    val itemIndex = videoAdapter.getItemIndex(item)
+
+                    videoAdapter.removeItem(itemIndex)
+                    requireActivity().runOnUiThread {
+                        videoAdapter.notifyItemRemoved(itemIndex)
+                    }
+
+                    activity?.let {
+                        Snackbar.make(
+                            it.findViewById(R.id.downloaded_fragment),
+                            item.title + " has been deleted!",
+                            Snackbar.LENGTH_SHORT
+                        ).setAnchorView(it.findViewById(R.id.bottom_navigation_bar)).show()
+                    }
+                }
+            }
+        })
     }
 }

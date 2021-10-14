@@ -1,4 +1,4 @@
-package com.mitchelltsutsulis.tube_loader
+package com.mitchelltsutsulis.tube_loader.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
@@ -7,4 +7,5 @@ import kotlinx.parcelize.Parcelize
 data class Video(val videoId: String, val title: String,
                  val thumbnail: Thumbnail,
                  val queued: Boolean = false,
-                 val downloaded: Boolean = false): Parcelable
+                 val downloaded: Boolean = false,
+                 val backendId: Int = -1): Parcelable
