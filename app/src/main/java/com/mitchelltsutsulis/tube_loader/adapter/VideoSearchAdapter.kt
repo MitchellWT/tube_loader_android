@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mitchelltsutsulis.tube_loader.App
 import com.mitchelltsutsulis.tube_loader.R
 import com.mitchelltsutsulis.tube_loader.model.Video
+import com.squareup.picasso.Picasso
 
 class VideoSearchAdapter(private val data: List<Video>,
                          private val context: Context?,
@@ -34,7 +35,11 @@ class VideoSearchAdapter(private val data: List<Video>,
 
         fun bind(item: Video) {
             title.text = item.title
-            (context as App).loadBitmap(item.videoId, thumbnail)
+            Picasso.get().load(item.thumbnail.source)
+                .placeholder(R.drawable.ic_black)
+                .error(R.drawable.thumbnail_not_found)
+                .into(thumbnail);
+            //(context as App).loadBitmap(item.videoId, thumbnail)
 
             view.setOnClickListener {
                 listener(item)

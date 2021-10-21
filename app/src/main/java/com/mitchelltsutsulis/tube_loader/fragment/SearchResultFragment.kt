@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,8 +22,10 @@ import java.io.IOException
 import java.net.URL
 
 class SearchResultFragment: Fragment() {
+    private lateinit var  loadingSpinner: ProgressBar
     private val httpClient = OkHttpClient()
     private var queryURL: String? = null
+    private var isPaused = false
     private val videoContract = registerForActivityResult(VideoActivity.Contract()) { status_code ->
         activity?.let {
             val text = when(status_code) {
@@ -52,6 +55,7 @@ class SearchResultFragment: Fragment() {
                     "fields=items(id(videoId),snippet(title,thumbnails(high)))&" +
                     "q=$searchString&" +
                     "type=video&" +
+                    "maxResults=20&" +
                     "key=AIzaSyCkh8pcOAd3yJ-QqkXEWnTYZqn8x9GMIP8"
         }
     }
@@ -65,11 +69,20 @@ class SearchResultFragment: Fragment() {
 
     override fun onStart() {
         super.onStart()
-        youtubeSearch()
+        if (!isPaused) {
+            loadingSpinner = view?.findViewById(R.id.loading_spinner)!!
+            youtubeSearch()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isPaused = true
     }
 
     private fun youtubeSearch() {
         queryURL?.let {
+            loadingSpinner.visibility = View.VISIBLE
             val request = Request.Builder()
                 .url(it)
                 .build()
@@ -77,6 +90,9 @@ class SearchResultFragment: Fragment() {
             httpClient.newCall(request).enqueue(object: Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     Log.i("API REQUEST FAILED", e.printStackTrace().toString())
+                    requireActivity().runOnUiThread {
+                        loadingSpinner.visibility = View.GONE
+                    }
                 }
 
                 override fun onResponse(call: Call, response: Response) {
@@ -84,6 +100,7 @@ class SearchResultFragment: Fragment() {
                         if (!res.isSuccessful) throw IOException("ERROR: $res")
                         val searchResults = jsonConversion(res.body!!.string())
                         requireActivity().runOnUiThread {
+                            loadingSpinner.visibility = View.GONE
                             updateRecycler(searchResults)
                         }
                     }
@@ -102,7 +119,7 @@ class SearchResultFragment: Fragment() {
             val snippet = itemsJsonArray.getJSONObject(i).getJSONObject("snippet")
             val title = snippet.getString("title")
             val thumbnail = snippet.getJSONObject("thumbnails").getJSONObject("high")
-            val url = URL(thumbnail.getString("url"))
+            //val url = URL(thumbnail.getString("url"))
             searchResults.add(
                 Video(videoId, title,
                 Thumbnail(thumbnail.getString("url"),
@@ -111,8 +128,8 @@ class SearchResultFragment: Fragment() {
                 )
             )
 
-            val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-            (activity?.application as App).storeBitmap(videoId, bitmap)
+            //val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+            //(activity?.application as App).storeBitmap(videoId, bitmap)
         }
 
         return searchResults

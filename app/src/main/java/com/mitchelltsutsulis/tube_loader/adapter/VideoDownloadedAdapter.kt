@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mitchelltsutsulis.tube_loader.App
 import com.mitchelltsutsulis.tube_loader.R
 import com.mitchelltsutsulis.tube_loader.model.Video
+import com.squareup.picasso.Picasso
 
 class VideoDownloadedAdapter(private val data: MutableList<Video>,
                              private val context: Context?,
@@ -39,7 +40,11 @@ class VideoDownloadedAdapter(private val data: MutableList<Video>,
 
         fun bind(item: Video) {
             title.text = item.title
-            (context as App).loadBitmap(item.videoId, thumbnail)
+            //(context as App).loadBitmap(item.videoId, thumbnail)
+            Picasso.get().load(item.thumbnail.source)
+                .placeholder(R.drawable.ic_black)
+                .error(R.drawable.thumbnail_not_found)
+                .into(thumbnail)
 
             delete.setOnClickListener {
                 listener(item)

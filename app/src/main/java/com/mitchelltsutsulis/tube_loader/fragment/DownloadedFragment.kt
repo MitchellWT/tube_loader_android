@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,6 +23,7 @@ import java.io.IOException
 import java.net.URL
 
 class DownloadedFragment : Fragment() {
+    private lateinit var  loadingSpinner: ProgressBar
     private val httpClient = OkHttpClient()
     private lateinit var videoAdapter: VideoDownloadedAdapter
 
@@ -34,17 +36,19 @@ class DownloadedFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        loadingSpinner = view?.findViewById(R.id.loading_spinner)!!
         getDownloaded()
     }
 
     private fun getDownloaded() {
+        loadingSpinner.visibility = View.VISIBLE
         val urlBuilder = Uri.Builder()
             .scheme("http")
             .encodedAuthority(getString(R.string.server_ip))
             .appendPath("api")
             .appendPath("videos")
             .appendPath("multiple")
-            .appendQueryParameter("amount", "10")
+            .appendQueryParameter("amount", "50")
             .appendQueryParameter("offset", "0")
         val showUrl = urlBuilder.build().toString()
 
@@ -57,13 +61,17 @@ class DownloadedFragment : Fragment() {
         httpClient.newCall(request).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.i("GET DOWNLOADED REQUEST FAILED", e.printStackTrace().toString())
+                requireActivity().runOnUiThread {
+                    loadingSpinner.visibility = View.GONE
+                }
             }
 
-            override fun onResponse(call: Call, response: Response) {
+                override fun onResponse(call: Call, response: Response) {
                 response.use { res ->
                     if (!res.isSuccessful) throw IOException("ERROR: $res")
                     val downloadedResults = jsonConversion(res.body!!.string())
                     requireActivity().runOnUiThread {
+                        loadingSpinner.visibility = View.GONE
                         updateRecycler(downloadedResults)
                     }
                 }
@@ -84,7 +92,7 @@ class DownloadedFragment : Fragment() {
                 val title = itemsJsonArray.getJSONObject(i).getString("title")
                 val backendId = itemsJsonArray.getJSONObject(i).getInt("id")
                 val thumbnailUrl = itemsJsonArray.getJSONObject(i).getString("thumbnail")
-                val url = URL(thumbnailUrl)
+                //val url = URL(thumbnailUrl)
 
                 downloadedResults.add(
                     Video(videoId, title,
@@ -93,10 +101,10 @@ class DownloadedFragment : Fragment() {
                     backendId = backendId)
                 )
 
-                if (!((activity?.application as App).checkBitmap(videoId))) {
-                    val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-                    (activity?.application as App).storeBitmap(videoId, bitmap)
-                }
+                //if (!((activity?.application as App).checkBitmap(videoId))) {
+                //    val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                //   (activity?.application as App).storeBitmap(videoId, bitmap)
+                //}
             }
         }
 

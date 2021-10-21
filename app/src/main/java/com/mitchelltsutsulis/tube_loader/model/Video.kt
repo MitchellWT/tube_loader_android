@@ -6,6 +6,6 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Video(val videoId: String, val title: String,
                  val thumbnail: Thumbnail,
-                 val queued: Boolean = false,
+                 var queued: Boolean = false,
                  val downloaded: Boolean = false,
                  val backendId: Int = -1): Parcelable

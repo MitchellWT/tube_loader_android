@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import com.mitchelltsutsulis.tube_loader.model.Video
+import com.squareup.picasso.Picasso
 import okhttp3.*
 import java.io.IOException
 
@@ -32,7 +33,11 @@ class VideoActivity : AppCompatActivity() {
         video?.let {
             title.text = it.title
             videoId.text = it.videoId
-            (this.application as App).loadBitmap(it.videoId, thumbnail)
+            Picasso.get().load(it.thumbnail.source)
+                .placeholder(R.drawable.ic_black)
+                .error(R.drawable.ic_black)
+                .into(thumbnail)
+            //(this.application as App).loadBitmap(it.videoId, thumbnail)
         }
 
         addButton.setOnClickListener {

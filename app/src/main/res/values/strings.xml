@@ -11,6 +11,7 @@
     <string name="queued_button">QUEUED</string>
     <string name="un_queued_button">UN-QUEUED</string>
     <string name="delete_button">DELETE</string>
+    <string name="queue_loading">Queue Loading</string>
     <string name="queue_stop">Queue Stopped</string>
     <string name="queue_running">Queue Running</string>
 </resources>
