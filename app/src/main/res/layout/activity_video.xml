@@ -8,12 +8,12 @@
     tools:context=".VideoActivity">
 
     <LinearLayout
-        android:id="@+id/videoContainer"
+        android:id="@+id/video_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/addButton">
+        app:layout_constraintBottom_toTopOf="@+id/add_button">
 
         <ImageView
             android:id="@+id/thumbnail"
@@ -41,7 +41,7 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/addButton"
+        android:id="@+id/add_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/add_video"

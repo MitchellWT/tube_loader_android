@@ -18,52 +18,77 @@ import java.io.IOException
 
 class VideoActivity : AppCompatActivity() {
     private val httpClient = OkHttpClient()
+    private lateinit var title: TextView
+    private lateinit var queued: CheckBox
+    private var video: Video? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video)
 
+        // Getting all view elements and the video from the intent
         val thumbnail = findViewById<ImageView>(R.id.thumbnail)
-        val title = findViewById<TextView>(R.id.title)
-        val videoId = findViewById<TextView>(R.id.videoId)
-        val queued = findViewById<CheckBox>(R.id.queued)
-        val addButton = findViewById<Button>(R.id.addButton)
-        val video = intent.getParcelableExtra<Video>("video")
+        val videoId   = findViewById<TextView>(R.id.videoId)
+        val addButton = findViewById<Button>(R.id.add_button)
+        title         = findViewById(R.id.title)
+        queued        = findViewById(R.id.queued)
+        video         = intent.getParcelableExtra("video")
 
+        // Only executed when video is not null
         video?.let {
+            // Set view elements
             title.text = it.title
             videoId.text = it.videoId
             Picasso.get().load(it.thumbnail.source)
                 .placeholder(R.drawable.ic_black)
                 .error(R.drawable.ic_black)
                 .into(thumbnail)
-            //(this.application as App).loadBitmap(it.videoId, thumbnail)
-        }
 
-        addButton.setOnClickListener {
+            // Old code
+            // (this.application as App).loadBitmap(it.videoId, thumbnail)
+
+            // Create listener for adding item to the system
+            addButton.setOnClickListener {
+                addToSystem()
+            }
+        }
+    }
+
+    override fun onBackPressed() {
+        // Response code of 300 shows no toast to user
+        exit(300)
+        super.onBackPressed()
+    }
+
+    // Only call function when video is not null
+    private fun addToSystem() {
+        video?.let {
+            // URI for creating videos via the API
             val urlBuilder = Uri.Builder()
                 .scheme("http")
                 .encodedAuthority(getString(R.string.server_ip))
                 .appendPath("api")
                 .appendPath("videos")
             val addUrl = urlBuilder.build().toString()
-
+            // Request body with required key value pairs
             val requestBody = FormBody.Builder()
                 .add("video_id", video?.videoId.toString())
                 .add("title", title.text.toString())
                 .add("thumbnail", video?.thumbnail?.source.toString())
                 .add("queued", (if (queued.isChecked) 1 else 0).toString())
                 .build()
-
+            // Bearer must be specified when using the API
             val request = Request.Builder()
                 .method("POST", requestBody)
                 .header("Authorization", "Bearer " + getString(R.string.api_token))
                 .url(addUrl)
                 .build()
-
-            httpClient.newCall(request).enqueue(object: Callback {
+            // API request with callback
+            httpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     Log.i("ADD VIDEO FAILED", e.printStackTrace().toString())
+                    // Contract response without response code will show a error
+                    // toast to the user
                     exit()
                 }
 
@@ -75,11 +100,7 @@ class VideoActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        exit(300)
-        super.onBackPressed()
-    }
-
+    // Sets result for contract and finishes activity
     private fun exit(status_code: Int = 400) {
         setResult(RESULT_OK, intent.putExtra("status_code", status_code))
         finish()
@@ -89,11 +110,13 @@ class VideoActivity : AppCompatActivity() {
     class Contract: ActivityResultContract<Video, Int>() {
         override fun createIntent(context: Context, input: Video?): Intent {
             return Intent(context, VideoActivity::class.java).apply {
+                // Parcelable video object
                 putExtra("video", input)
             }
         }
 
         override fun parseResult(resultCode: Int, intent: Intent?): Int {
+            // Result response code for toast to user
             return intent?.getIntExtra("status_code", 400)!!
         }
     }
