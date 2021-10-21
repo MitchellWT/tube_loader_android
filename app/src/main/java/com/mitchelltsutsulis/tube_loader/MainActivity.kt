@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mitchelltsutsulis.tube_loader.fragment.DownloadedFragment
 import com.mitchelltsutsulis.tube_loader.fragment.QueueFragment
+import com.mitchelltsutsulis.tube_loader.fragment.SearchFragment
 
 class MainActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

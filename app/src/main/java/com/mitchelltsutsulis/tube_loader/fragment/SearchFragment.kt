@@ -1,4 +1,4 @@
-package com.mitchelltsutsulis.tube_loader
+package com.mitchelltsutsulis.tube_loader.fragment
 
 import android.app.Activity
 import android.os.Bundle
@@ -9,7 +9,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.fragment.app.Fragment
-import com.mitchelltsutsulis.tube_loader.fragment.SearchResultFragment
+import com.mitchelltsutsulis.tube_loader.R
 
 class SearchFragment : Fragment() {
     private lateinit var searchField: EditText

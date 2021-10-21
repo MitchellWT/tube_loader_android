@@ -1,6 +1,5 @@
 package com.mitchelltsutsulis.tube_loader.fragment
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -20,7 +19,6 @@ import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONTokener
 import java.io.IOException
-import java.net.URL
 
 class DownloadedFragment : Fragment() {
     private lateinit var  loadingSpinner: ProgressBar

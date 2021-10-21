@@ -1,6 +1,5 @@
 package com.mitchelltsutsulis.tube_loader.fragment
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -24,8 +23,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.IOException
-import java.lang.Thread.sleep
-import java.net.URL
 
 class QueueFragment : Fragment() {
     private lateinit var loadingSpinner: ProgressBar
