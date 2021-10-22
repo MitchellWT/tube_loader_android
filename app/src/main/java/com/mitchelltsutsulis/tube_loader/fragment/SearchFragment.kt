@@ -23,18 +23,21 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        // Getting field from view
         searchField = view.findViewById(R.id.search_field)
-
-        searchField?.setOnEditorActionListener { _, actionId, _ ->
+        // Setting on click event using soft keyboard
+        searchField.setOnEditorActionListener { _, actionId, _ ->
             return@setOnEditorActionListener when (actionId) {
+                // Only ran when search button on soft keyboard
+                // is pressed
                 EditorInfo.IME_ACTION_SEARCH -> {
-                    val newFragmentBundle = Bundle()
-                    val newSearchResultFragment =
-                        SearchResultFragment()
-                    val inputMethodManager = activity?.getSystemService(Activity.INPUT_METHOD_SERVICE)
-                                             as InputMethodManager
-
+                    // Instantiating data, need to get InputMethodManager so that
+                    // the soft keyboard can be closed on button press
+                    val newFragmentBundle       = Bundle()
+                    val newSearchResultFragment = SearchResultFragment()
+                    val inputMethodManager      = activity?.getSystemService(Activity.INPUT_METHOD_SERVICE)
+                                                    as InputMethodManager
+                    // Hide soft keyboard, and set up new fragment
                     inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
                     newFragmentBundle.putString("searchString", searchField.text.toString())
                     newSearchResultFragment.arguments = newFragmentBundle
@@ -51,8 +54,9 @@ class SearchFragment : Fragment() {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
+    // Clears search field on lifecycle event
+    override fun onStop() {
         searchField.text.clear()
-        super.onSaveInstanceState(outState)
+        super.onStop()
     }
 }

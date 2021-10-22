@@ -9,7 +9,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
-import com.mitchelltsutsulis.tube_loader.App
 import com.mitchelltsutsulis.tube_loader.R
 import com.mitchelltsutsulis.tube_loader.model.Video
 import com.squareup.picasso.Picasso
