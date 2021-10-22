@@ -33,23 +33,29 @@ class VideoQueueAdapter(private val data: MutableList<Video>,
     fun getItemIndex(item: Video) = data.indexOf(item)
 
     inner class ViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
-        private val queued: Button = view.findViewById(R.id.queue_button)
-        private val title: TextView = view.findViewById(R.id.title)
+        // Getting components from view
+        private val queued: Button       = view.findViewById(R.id.queue_button)
+        private val title: TextView      = view.findViewById(R.id.title)
         private val thumbnail: ImageView = view.findViewById(R.id.thumbnail)
+        // Set initial value of button text
         private val buttonText = MutableLiveData(context?.getString(R.string.queued_button))
 
+        // Sets component data from passed in video
         fun bind(item: Video) {
+            // Conditional for button text
             buttonText.value = if (!item.queued) context?.getString(R.string.un_queued_button)
             else context?.getString(R.string.queued_button)
 
             queued.text = buttonText.value
-            title.text = item.title
+            title.text  = item.title
             Picasso.get().load(item.thumbnail.source)
                 .placeholder(R.drawable.ic_black)
                 .error(R.drawable.thumbnail_not_found)
                 .into(thumbnail)
-            //(context as App).loadBitmap(item.videoId, thumbnail)
+            // Old code
+            // (context as App).loadBitmap(item.videoId, thumbnail)
 
+            // Sets on click listener, function provided during instantiation
             queued.setOnClickListener {
                 listener(item)
             }

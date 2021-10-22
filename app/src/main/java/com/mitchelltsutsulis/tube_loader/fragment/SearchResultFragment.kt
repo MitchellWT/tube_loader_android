@@ -170,7 +170,7 @@ class SearchResultFragment: Fragment() {
         val videoRecycler = view?.findViewById<RecyclerView>(R.id.video_recycler)
         val layoutManager = LinearLayoutManager(context)
         // Set up video adapter with function for on click events
-        val videoAdapter = VideoSearchAdapter(searchResults, activity?.application) {videoActivity(it)}
+        val videoAdapter = VideoSearchAdapter(searchResults) {videoActivity(it)}
         // Set up recycler view
         videoRecycler?.let {
             it.layoutManager = layoutManager

@@ -67,7 +67,7 @@ class DownloadedFragment : Fragment() {
                 requireActivity().runOnUiThread {
                     loadingSpinner.visibility = View.GONE
                 }
-                // Presents toast to use describing the failure
+                // Presents toast to user describing the failure
                 activity?.let {
                     Snackbar.make(
                         it.findViewById(R.id.downloaded_fragment),
@@ -140,7 +140,7 @@ class DownloadedFragment : Fragment() {
         val layoutManager = LinearLayoutManager(context)
         // Set up video adapter with function for on click events
         videoAdapter = VideoDownloadedAdapter(downloadedResults
-                        as MutableList<Video>, activity?.application) {deleteVideo(it)}
+                        as MutableList<Video>) {deleteVideo(it)}
         // Set up recycler view
         videoRecycler?.let {
             it.layoutManager = layoutManager

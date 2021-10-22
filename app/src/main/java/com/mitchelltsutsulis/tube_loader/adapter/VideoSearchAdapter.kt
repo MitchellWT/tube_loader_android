@@ -12,7 +12,8 @@ import com.mitchelltsutsulis.tube_loader.model.Video
 import com.squareup.picasso.Picasso
 
 class VideoSearchAdapter(private val data: List<Video>,
-                         private val context: Context?,
+                         // Old code
+                         // private val context: Context?,
                          private val listener: (Video) -> Unit): RecyclerView.Adapter<VideoSearchAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -29,17 +30,21 @@ class VideoSearchAdapter(private val data: List<Video>,
     }
 
     inner class ViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
-        private val title: TextView = view.findViewById(R.id.title)
+        // Getting components from view
+        private val title: TextView      = view.findViewById(R.id.title)
         private val thumbnail: ImageView = view.findViewById(R.id.thumbnail)
 
+        // Sets component data from passed in video
         fun bind(item: Video) {
             title.text = item.title
             Picasso.get().load(item.thumbnail.source)
                 .placeholder(R.drawable.ic_black)
                 .error(R.drawable.thumbnail_not_found)
-                .into(thumbnail);
-            //(context as App).loadBitmap(item.videoId, thumbnail)
+                .into(thumbnail)
+            // Old code
+            // (context as App).loadBitmap(item.videoId, thumbnail)
 
+            // Sets on click listener, function provided during instantiation
             view.setOnClickListener {
                 listener(item)
             }

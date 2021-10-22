@@ -13,7 +13,8 @@ import com.mitchelltsutsulis.tube_loader.model.Video
 import com.squareup.picasso.Picasso
 
 class VideoDownloadedAdapter(private val data: MutableList<Video>,
-                             private val context: Context?,
+                             // Old Code
+                             // private val context: Context?,
                              private val listener: (Video) -> Unit): RecyclerView.Adapter<VideoDownloadedAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -33,18 +34,21 @@ class VideoDownloadedAdapter(private val data: MutableList<Video>,
     fun removeItem(index: Int) = data.removeAt(index)
 
     inner class ViewHolder(private val view: View): RecyclerView.ViewHolder(view) {
-        private val delete: Button = view.findViewById(R.id.delete_button)
-        private val title: TextView = view.findViewById(R.id.title)
+        // Getting component from the view
+        private val delete: Button       = view.findViewById(R.id.delete_button)
+        private val title: TextView      = view.findViewById(R.id.title)
         private val thumbnail: ImageView = view.findViewById(R.id.thumbnail)
 
+        // Sets component data from passed in video
         fun bind(item: Video) {
             title.text = item.title
-            //(context as App).loadBitmap(item.videoId, thumbnail)
+            // Old code
+            // (context as App).loadBitmap(item.videoId, thumbnail)
             Picasso.get().load(item.thumbnail.source)
                 .placeholder(R.drawable.ic_black)
                 .error(R.drawable.thumbnail_not_found)
                 .into(thumbnail)
-
+            // Sets on click listener, function provided during instantiation
             delete.setOnClickListener {
                 listener(item)
             }
