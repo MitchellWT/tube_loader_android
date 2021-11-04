@@ -18,9 +18,6 @@ import java.io.IOException
 
 class VideoActivity : AppCompatActivity() {
     private val httpClient = OkHttpClient()
-    private lateinit var title: TextView
-    private lateinit var queued: CheckBox
-    private var video: Video? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,9 +27,9 @@ class VideoActivity : AppCompatActivity() {
         val thumbnail = findViewById<ImageView>(R.id.thumbnail)
         val videoId   = findViewById<TextView>(R.id.videoId)
         val addButton = findViewById<Button>(R.id.add_button)
-        title         = findViewById(R.id.title)
-        queued        = findViewById(R.id.queued)
-        video         = intent.getParcelableExtra("video")
+        val title     = findViewById<TextView>(R.id.title)
+        val queued    = findViewById<CheckBox>(R.id.queued)
+        val video     = intent.getParcelableExtra<Video>("video")
 
         // Only executed when video is not null
         video?.let {
@@ -49,7 +46,9 @@ class VideoActivity : AppCompatActivity() {
 
             // Create listener for adding item to the system
             addButton.setOnClickListener {
-                addToSystem()
+                video.title = title.text.toString()
+                video.queued = queued.isChecked
+                addToSystem(video)
             }
         }
     }
@@ -61,8 +60,8 @@ class VideoActivity : AppCompatActivity() {
     }
 
     // Only call function when video is not null
-    private fun addToSystem() {
-        video?.let {
+    private fun addToSystem(video: Video) {
+        video.let {
             // URI for creating videos via the API
             val urlBuilder = Uri.Builder()
                 .scheme("http")
@@ -72,10 +71,10 @@ class VideoActivity : AppCompatActivity() {
             val addUrl = urlBuilder.build().toString()
             // Request body with required key value pairs
             val requestBody = FormBody.Builder()
-                .add("video_id", video?.videoId.toString())
-                .add("title", title.text.toString())
-                .add("thumbnail", video?.thumbnail?.source.toString())
-                .add("queued", (if (queued.isChecked) 1 else 0).toString())
+                .add("video_id", video.videoId)
+                .add("title", video.title)
+                .add("thumbnail", video.thumbnail.source)
+                .add("queued", (if (video.queued) 1 else 0).toString())
                 .build()
             // Bearer must be specified when using the API
             val request = Request.Builder()

@@ -58,7 +58,7 @@ class SearchResultFragment: Fragment() {
                     "q=$searchString&" +
                     "type=video&" +
                     "maxResults=20&" +
-                    "key=AIzaSyCkh8pcOAd3yJ-QqkXEWnTYZqn8x9GMIP8"
+                    "key=${getString(R.string.youtube_api_key)}"
         }
     }
 
