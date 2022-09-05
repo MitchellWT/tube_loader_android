@@ -107,7 +107,7 @@ class VideoActivity : AppCompatActivity() {
 
     // Contract for activity
     class Contract: ActivityResultContract<Video, Int>() {
-        override fun createIntent(context: Context, input: Video?): Intent {
+        override fun createIntent(context: Context, input: Video): Intent {
             return Intent(context, VideoActivity::class.java).apply {
                 // Parcelable video object
                 putExtra("video", input)
