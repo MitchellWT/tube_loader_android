@@ -46,11 +46,9 @@ class DownloadedFragment : Fragment() {
         val urlBuilder = Uri.Builder()
             .scheme("http")
             .encodedAuthority(getString(R.string.server_ip))
-            .appendPath("api")
             .appendPath("videos")
-            .appendPath("multiple")
             .appendQueryParameter("amount", "50")
-            .appendQueryParameter("offset", "0")
+            .appendQueryParameter("page", "0")
         val showUrl = urlBuilder.build().toString()
         // GET method does not require a request body, data is passed as query parameters
         // in the URI
@@ -63,23 +61,28 @@ class DownloadedFragment : Fragment() {
         httpClient.newCall(request).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.i("GET DOWNLOADED REQUEST FAILED", e.printStackTrace().toString())
+                if (!isAdded) return
+
                 // Removes loading spinner
                 requireActivity().runOnUiThread {
                     loadingSpinner.visibility = View.GONE
                 }
                 // Presents toast to user describing the failure
-                activity?.let {
-                    Snackbar.make(
-                        it.findViewById(R.id.downloaded_fragment),
-                        "Failed to load downloaded videos! Please check you connection!",
-                        Snackbar.LENGTH_SHORT
-                    ).setAnchorView(it.findViewById(R.id.bottom_navigation_bar)).show()
+                requireActivity().let {
+                    it.findViewById<View>(R.id.downloaded_fragment)?.let { v ->
+                        Snackbar.make(
+                            v,
+                            "Failed to load downloaded videos! Please check you connection!",
+                            Snackbar.LENGTH_SHORT
+                        ).setAnchorView(it.findViewById(R.id.bottom_navigation_bar)).show()
+                    }
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 response.use { res ->
                     if (!res.isSuccessful) throw IOException("ERROR: $res")
+                    if (!isAdded) return
                     // Converts received JSON into a list of videos
                     val downloadedResults = jsonConversion(res.body!!.string())
                     // Removes loading spinner and updates recycler with received data
@@ -154,16 +157,13 @@ class DownloadedFragment : Fragment() {
         val urlBuilder = Uri.Builder()
             .scheme("http")
             .encodedAuthority(getString(R.string.server_ip))
-            .appendPath("api")
-            .appendPath("videos")
+            .appendPath("video")
+            .appendPath(item.backendId.toString())
         val deleteUrl = urlBuilder.build().toString()
         // Request body with required key value pair
-        val requestBody = FormBody.Builder()
-            .add("id", item.backendId.toString())
-            .build()
         // Bearer must be specified when using the API
         val request = Request.Builder()
-            .method("DELETE",  requestBody)
+            .method("DELETE", null)
             .header("Authorization", "Bearer " + getString(R.string.api_token))
             .url(deleteUrl)
             .build()
@@ -171,8 +171,9 @@ class DownloadedFragment : Fragment() {
         httpClient.newCall(request).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.i("DELETE REQUEST FAILED", e.printStackTrace().toString())
+                if (!isAdded) return
                 // Present toast to user describing that the delete failed
-                activity?.let {
+                requireActivity().let {
                     Snackbar.make(
                         it.findViewById(R.id.downloaded_fragment),
                         item.title + " has NOT been deleted! Please try again!",

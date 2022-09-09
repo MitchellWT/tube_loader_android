@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.mitchelltsutsulis.tube_loader.model.Video
 import com.squareup.picasso.Picasso
 import okhttp3.*
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.io.IOException
 
 class VideoActivity : AppCompatActivity() {
@@ -66,16 +68,15 @@ class VideoActivity : AppCompatActivity() {
             val urlBuilder = Uri.Builder()
                 .scheme("http")
                 .encodedAuthority(getString(R.string.server_ip))
-                .appendPath("api")
-                .appendPath("videos")
+                .appendPath("video")
             val addUrl = urlBuilder.build().toString()
             // Request body with required key value pairs
-            val requestBody = FormBody.Builder()
-                .add("video_id", video.videoId)
-                .add("title", video.title)
-                .add("thumbnail", video.thumbnail.source)
-                .add("queued", (if (video.queued) 1 else 0).toString())
-                .build()
+            val requestBody = """{
+                "video_id": "${video.videoId}",
+                "title": "${video.title}",
+                "thumbnail": "${video.thumbnail.source}",
+                "queued": ${video.queued}
+            }""".toRequestBody()
             // Bearer must be specified when using the API
             val request = Request.Builder()
                 .method("POST", requestBody)

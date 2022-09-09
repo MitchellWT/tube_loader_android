@@ -30,7 +30,7 @@ class SearchResultFragment: Fragment() {
         activity?.let {
             // Ideally remove magic numbers
             val text = when(status_code) {
-                201 -> "Video added!"
+                200 -> "Video added!"
                 300 -> "300"
                 else -> "Unknown error occurred, try again!"
             }

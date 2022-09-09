@@ -19,6 +19,7 @@ import com.mitchelltsutsulis.tube_loader.model.Thumbnail
 import com.mitchelltsutsulis.tube_loader.model.Video
 import kotlinx.coroutines.*
 import okhttp3.*
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -55,7 +56,6 @@ class QueueFragment : Fragment() {
         val urlBuilder = Uri.Builder()
             .scheme("http")
             .encodedAuthority(getString(R.string.server_ip))
-            .appendPath("api")
             .appendPath("queue")
         val showUrl = urlBuilder.build().toString()
         // GET method does not require a request body
@@ -68,6 +68,7 @@ class QueueFragment : Fragment() {
         httpClient.newCall(request).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.i("GET QUEUE STATUS REQUEST FAILED", e.printStackTrace().toString())
+                if (!isAdded) return
                 // Presents toast to user stating that the request failed
                 activity?.let {
                     Snackbar.make(
@@ -105,16 +106,11 @@ class QueueFragment : Fragment() {
         val urlBuilder = Uri.Builder()
             .scheme("http")
             .encodedAuthority(getString(R.string.server_ip))
-            .appendPath("api")
             .appendPath("queue")
         val toggleUrl = urlBuilder.build().toString()
-        // PUT requires a request body, however ours is empty as the API
-        // toggles the queue status using it's current value
-        val requestBody = FormBody.Builder()
-            .build()
         // Setup request with request body
         val request = Request.Builder()
-            .method("PUT", requestBody)
+            .method("PUT", "".toRequestBody())
             .header("Authorization", "Bearer " + getString(R.string.api_token))
             .url(toggleUrl)
             .build()
@@ -159,20 +155,19 @@ class QueueFragment : Fragment() {
 
     // Gets queue data from API
     private fun getQueue() {
+        if (!isAdded) return
         // Makes the loading spinner visible
-        loadingSpinner.visibility = View.VISIBLE
+        requireActivity().runOnUiThread {
+            loadingSpinner.visibility = View.VISIBLE
+        }
         // URI for getting multiple videos via API
         val urlBuilder = Uri.Builder()
             .scheme("http")
             .encodedAuthority(getString(R.string.server_ip))
-            .appendPath("api")
             .appendPath("videos")
-            .appendPath("multiple")
             .appendQueryParameter("amount", "50")
-            .appendQueryParameter("offset", "0")
+            .appendQueryParameter("page", "0")
         val showUrl = urlBuilder.build().toString()
-        // GET method does not require a request body, data is passed as query parameters
-        // in the URI
         val request = Request.Builder()
             .method("GET", null)
             .header("Authorization", "Bearer " + getString(R.string.api_token))
@@ -183,11 +178,13 @@ class QueueFragment : Fragment() {
             override fun onFailure(call: Call, e: IOException) {
                 Log.i("GET QUEUE REQUEST FAILED", e.printStackTrace().toString())
                 // Removes loading spinner
+                if (!isAdded) return
+
                 requireActivity().runOnUiThread {
                     loadingSpinner.visibility = View.GONE
                 }
                 // Presents toast to user stating that the request failed
-                activity?.let {
+                requireActivity().let {
                     Snackbar.make(
                         it.findViewById(R.id.queue_fragment),
                         "Unable to get queue data! Please check your connection!",
@@ -279,17 +276,13 @@ class QueueFragment : Fragment() {
         val urlBuilder = Uri.Builder()
             .scheme("http")
             .encodedAuthority(getString(R.string.server_ip))
-            .appendPath("api")
-            .appendPath("videos")
+            .appendPath("video")
+            .appendPath(item.backendId.toString())
             .appendPath("queued")
         val toggleUrl = urlBuilder.build().toString()
-        // Request body with required key value pair
-        val requestBody = FormBody.Builder()
-            .add("id", item.backendId.toString())
-            .build()
         // Setup request with request body
         val request = Request.Builder()
-            .method("PUT",  requestBody)
+            .method("PUT",  "".toRequestBody())
             .header("Authorization", "Bearer " + getString(R.string.api_token))
             .url(toggleUrl)
             .build()
@@ -321,7 +314,7 @@ class QueueFragment : Fragment() {
                     val text = if (item.queued) item.title + " has been queued!"
                     else item.title + " has been un-queued!"
                     // Present toast to user describing the change
-                    activity?.let {
+                    requireActivity().let {
                         Snackbar.make(
                             it.findViewById(R.id.queue_fragment),
                             text,

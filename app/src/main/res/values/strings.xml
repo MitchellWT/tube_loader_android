@@ -6,7 +6,7 @@
     <string name="search_menu">Search</string>
     <string name="queue_menu">Queue</string>
     <string name="download_menu">Downloaded</string>
-    <string name="server_ip">192.168.1.22:8000</string>
+    <string name="server_ip">192.168.1.26:8383</string>
     <string name="api_token">1|ObdqQwDe15jLSg7mg98QvukvKsrYvMFxFo6trsMu</string>
     <string name="queued_button">QUEUED</string>
     <string name="un_queued_button">UN-QUEUED</string>
