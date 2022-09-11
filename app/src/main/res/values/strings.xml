@@ -6,7 +6,8 @@
     <string name="search_menu">Search</string>
     <string name="queue_menu">Queue</string>
     <string name="download_menu">Downloaded</string>
-    <string name="server_ip">192.168.1.26:8383</string>
+    <string name="server_protocol">http</string>
+    <string name="server_address">192.168.1.36:8383</string>
     <string name="api_token">1|ObdqQwDe15jLSg7mg98QvukvKsrYvMFxFo6trsMu</string>
     <string name="queued_button">QUEUED</string>
     <string name="un_queued_button">UN-QUEUED</string>
@@ -14,4 +15,5 @@
     <string name="queue_loading">Queue Loading</string>
     <string name="queue_stop">Queue Stopped</string>
     <string name="queue_running">Queue Running</string>
+    <string name="youtube_api_key">__PUT API KEY HERE__</string>
 </resources>
