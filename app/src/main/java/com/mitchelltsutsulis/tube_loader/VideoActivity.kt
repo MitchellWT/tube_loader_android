@@ -50,6 +50,7 @@ class VideoActivity : AppCompatActivity() {
     }
 
     private fun addToSystem(video: Video) {
+        val authToken = (application as App).basicAuthStr
         val url = Uri.Builder()
             .scheme(getString(R.string.server_protocol))
             .encodedAuthority(getString(R.string.server_address))
@@ -65,6 +66,7 @@ class VideoActivity : AppCompatActivity() {
         val req = Request.Builder()
             .post(body)
             .url(url)
+            .addHeader("Authorization", "Basic $authToken")
             .build()
         httpClient.newCall(req).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
