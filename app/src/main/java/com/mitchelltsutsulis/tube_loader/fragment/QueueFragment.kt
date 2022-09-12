@@ -12,13 +12,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.android.material.snackbar.Snackbar
 import com.mitchelltsutsulis.tube_loader.*
 import com.mitchelltsutsulis.tube_loader.adapter.VideoQueueAdapter
-import com.mitchelltsutsulis.tube_loader.model.Thumbnail
 import com.mitchelltsutsulis.tube_loader.model.Video
 import kotlinx.coroutines.*
 import okhttp3.*
@@ -44,6 +42,7 @@ class QueueFragment : Fragment() {
     }
 
     private fun getQueueStatus() {
+        val authToken = (requireActivity().application as App).basicAuthStr
         val url = Uri.Builder()
             .scheme(getString(R.string.server_protocol))
             .encodedAuthority(getString(R.string.server_address))
@@ -53,6 +52,7 @@ class QueueFragment : Fragment() {
         val req = Request.Builder()
             .get()
             .url(url)
+            .addHeader("Authorization", "Basic $authToken")
             .build()
         httpClient.newCall(req).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -92,6 +92,7 @@ class QueueFragment : Fragment() {
     }
 
     private fun setQueueStatus(queueButton: View) {
+        val authToken = (requireActivity().application as App).basicAuthStr
         val url = Uri.Builder()
             .scheme(getString(R.string.server_protocol))
             .encodedAuthority(getString(R.string.server_address))
@@ -101,6 +102,7 @@ class QueueFragment : Fragment() {
         val req = Request.Builder()
             .put("".toRequestBody())
             .url(url)
+            .addHeader("Authorization", "Basic $authToken")
             .build()
         httpClient.newCall(req).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -146,6 +148,7 @@ class QueueFragment : Fragment() {
         if (!isAdded) return
         val loadingSpinner = requireView().findViewById<ProgressBar>(R.id.loading_spinner)
         requireActivity().runOnUiThread { loadingSpinner.visibility = View.VISIBLE }
+        val authToken = (requireActivity().application as App).basicAuthStr
         val url = Uri.Builder()
             .scheme(getString(R.string.server_protocol))
             .encodedAuthority(getString(R.string.server_address))
@@ -159,6 +162,7 @@ class QueueFragment : Fragment() {
         val req = Request.Builder()
             .get()
             .url(url)
+            .addHeader("Authorization", "Basic $authToken")
             .build()
         httpClient.newCall(req).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -188,7 +192,7 @@ class QueueFragment : Fragment() {
                     return
                 }
                 val videos = objectMapper.readTree(response.body?.string())
-                val res = resToRes(videos.asSequence())
+                val res = Video.jsonSeqToList(videos.asSequence())
                 requireActivity().runOnUiThread {
                     loadingSpinner.visibility = View.GONE
                     updateRecycler(res)
@@ -196,27 +200,6 @@ class QueueFragment : Fragment() {
             }
         })
     }
-
-    private fun resToRes(videos: Sequence<JsonNode>) = videos.map {
-        val backendId = it.get("id").asInt()
-        val downloaded = it.get("downloaded").asBoolean()
-        val queued = it.get("queued").asBoolean()
-        val videoId = it.get("video_id").asText()
-        val title = it.get("title").asText()
-        val thumbnail = it.get("thumbnail").asText()
-        val downloadedAt = it.get("downloaded_at").asText()
-        val directory = it.get("directory").asText()
-        Video(
-            videoId,
-            title,
-            Thumbnail(thumbnail),
-            queued,
-            downloaded,
-            downloadedAt,
-            backendId,
-            directory
-        )
-    }.toList()
 
     private fun updateRecycler(videos: List<Video>) {
         val videoRecycler = requireView().findViewById<RecyclerView>(R.id.queue_recycler)
@@ -230,6 +213,7 @@ class QueueFragment : Fragment() {
     }
 
     private fun toggleQueuedState(item: Video) {
+        val authToken = (requireActivity().application as App).basicAuthStr
         val url = Uri.Builder()
             .scheme(getString(R.string.server_protocol))
             .encodedAuthority(getString(R.string.server_address))
@@ -241,6 +225,7 @@ class QueueFragment : Fragment() {
         val req = Request.Builder()
             .put("".toRequestBody())
             .url(url)
+            .addHeader("Authorization", "Basic $authToken")
             .build()
         httpClient.newCall(req).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
