@@ -101,7 +101,7 @@ class SearchResultFragment: Fragment() {
                     return
                 }
                 val videos = objectMapper.readTree(response.body?.string()).get("items")
-                val searchRes = resToRes(videos.asSequence())
+                val searchRes = youtubeResToVideoList(videos.asSequence())
                 activity.runOnUiThread {
                     loadingSpinner.visibility = View.GONE
                     updateRecycler(searchRes)
@@ -110,7 +110,7 @@ class SearchResultFragment: Fragment() {
         })
     }
 
-    private fun resToRes(videos: Sequence<JsonNode>) = videos.map {
+    private fun youtubeResToVideoList(videos: Sequence<JsonNode>) = videos.map {
         val videoId = it.get("id").get("videoId").asText()
         val snippet = it.get("snippet")
         val title = snippet.get("title").asText()
