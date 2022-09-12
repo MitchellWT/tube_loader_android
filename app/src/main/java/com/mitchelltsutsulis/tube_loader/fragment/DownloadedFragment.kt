@@ -10,13 +10,10 @@ import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.android.material.snackbar.Snackbar
 import com.mitchelltsutsulis.tube_loader.*
 import com.mitchelltsutsulis.tube_loader.adapter.VideoDownloadedAdapter
-import com.mitchelltsutsulis.tube_loader.model.Thumbnail
 import com.mitchelltsutsulis.tube_loader.model.Video
 import okhttp3.*
 import java.io.IOException
@@ -40,6 +37,7 @@ class DownloadedFragment : Fragment() {
     private fun getDownloaded() {
         val loadingSpinner = requireView().findViewById<ProgressBar>(R.id.loading_spinner)
         loadingSpinner.visibility = View.VISIBLE
+        val authToken = (requireActivity().application as App).basicAuthStr
         val url = Uri.Builder()
             .scheme(getString(R.string.server_protocol))
             .encodedAuthority(getString(R.string.server_address))
@@ -52,6 +50,7 @@ class DownloadedFragment : Fragment() {
         val req = Request.Builder()
             .get()
             .url(url)
+            .addHeader("Authorization", "Basic $authToken")
             .build()
         httpClient.newCall(req).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -82,7 +81,7 @@ class DownloadedFragment : Fragment() {
                     return
                 }
                 val videos = objectMapper.readTree(response.body?.string())
-                val res = resToRes(videos.asSequence())
+                val res = Video.jsonSeqToList(videos.asSequence())
                 activity.runOnUiThread {
                     loadingSpinner.visibility = View.GONE
                     updateRecycler(res)
@@ -90,27 +89,6 @@ class DownloadedFragment : Fragment() {
             }
         })
     }
-
-    private fun resToRes(videos: Sequence<JsonNode>) = videos.map {
-        val backendId = it.get("id").asInt()
-        val downloaded = it.get("downloaded").asBoolean()
-        val queued = it.get("queued").asBoolean()
-        val videoId = it.get("video_id").asText()
-        val title = it.get("title").asText()
-        val thumbnail = it.get("thumbnail").asText()
-        val downloadedAt = it.get("downloaded_at").asText()
-        val directory = it.get("directory").asText()
-        Video(
-            videoId,
-            title,
-            Thumbnail(thumbnail),
-            queued,
-            downloaded,
-            downloadedAt,
-            backendId,
-            directory
-        )
-    }.toList()
 
     private fun updateRecycler(videos: List<Video>) {
         val videoRecycler = requireView().findViewById<RecyclerView>(R.id.delete_recycler)
@@ -121,6 +99,7 @@ class DownloadedFragment : Fragment() {
     }
 
     private fun deleteVideo(item: Video) {
+        val authToken = (requireActivity().application as App).basicAuthStr
         val url = Uri.Builder()
             .scheme(getString(R.string.server_protocol))
             .encodedAuthority(getString(R.string.server_address))
@@ -131,6 +110,7 @@ class DownloadedFragment : Fragment() {
         val req = Request.Builder()
             .delete()
             .url(url)
+            .addHeader("Authorization", "Basic $authToken")
             .build()
         httpClient.newCall(req).enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
