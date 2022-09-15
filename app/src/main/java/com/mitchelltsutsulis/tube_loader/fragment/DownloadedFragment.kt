@@ -37,10 +37,10 @@ class DownloadedFragment : Fragment() {
     private fun getDownloaded() {
         val loadingSpinner = requireView().findViewById<ProgressBar>(R.id.loading_spinner)
         loadingSpinner.visibility = View.VISIBLE
-        val authToken = (requireActivity().application as App).basicAuthStr
+        val app = (requireActivity().application as App)
         val url = Uri.Builder()
-            .scheme(getString(R.string.server_protocol))
-            .encodedAuthority(getString(R.string.server_address))
+            .scheme(app.getServerScheme())
+            .encodedAuthority(app.getServerAuthority())
             .appendPath("videos")
             .appendPath("downloaded")
             .appendQueryParameter("amount", "50")
@@ -50,7 +50,7 @@ class DownloadedFragment : Fragment() {
         val req = Request.Builder()
             .get()
             .url(url)
-            .addHeader("Authorization", "Basic $authToken")
+            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
             .build()
         httpClient.newCall(req).enqueue(GetDownloadedCallback(this, loadingSpinner))
     }
@@ -104,10 +104,10 @@ class DownloadedFragment : Fragment() {
     }
 
     private fun deleteVideo(item: Video) {
-        val authToken = (requireActivity().application as App).basicAuthStr
+        val app = (requireActivity().application as App)
         val url = Uri.Builder()
-            .scheme(getString(R.string.server_protocol))
-            .encodedAuthority(getString(R.string.server_address))
+            .scheme(app.getServerScheme())
+            .encodedAuthority(app.getServerAuthority())
             .appendPath("video")
             .appendPath(item.backendId.toString())
             .build()
@@ -115,7 +115,7 @@ class DownloadedFragment : Fragment() {
         val req = Request.Builder()
             .delete()
             .url(url)
-            .addHeader("Authorization", "Basic $authToken")
+            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
             .build()
         httpClient.newCall(req).enqueue(DeleteVideoCallback(this, item))
     }

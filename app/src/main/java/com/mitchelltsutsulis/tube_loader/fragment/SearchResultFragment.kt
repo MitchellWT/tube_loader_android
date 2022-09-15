@@ -37,6 +37,7 @@ class SearchResultFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val app = (requireActivity().application as App)
         searchString = arguments?.getString("searchString") ?: ""
         url = "https://www.googleapis.com/youtube/v3/search?" +
             "part=snippet&" +
@@ -44,7 +45,7 @@ class SearchResultFragment: Fragment() {
             "q=$searchString&" +
             "type=video&" +
             "maxResults=20&" +
-            "key=${getString(R.string.youtube_api_key)}"
+            "key=${app.getYoutubeToken()}"
     }
 
     override fun onCreateView(

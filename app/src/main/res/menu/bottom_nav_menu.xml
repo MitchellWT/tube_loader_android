@@ -3,15 +3,20 @@
     <item
         android:id="@+id/bnv_search"
         android:title="@string/search_menu"
-        android:icon="@drawable/ic_baseline_search_24"/>
+        android:icon="@drawable/ic_baseline_search_24" />
 
     <item
         android:id="@+id/bnv_queue"
         android:title="@string/queue_menu"
-        android:icon="@drawable/ic_baseline_queue_24"/>
+        android:icon="@drawable/ic_baseline_queue_24" />
 
     <item
         android:id="@+id/bnv_downloaded"
         android:title="@string/download_menu"
-        android:icon="@drawable/ic_baseline_arrow_circle_down_24"/>
+        android:icon="@drawable/ic_baseline_arrow_circle_down_24" />
+
+    <item
+        android:id="@+id/bnv_logout"
+        android:title="@string/logout"
+        android:icon="@drawable/ic_baseline_login_24" />
 </menu>

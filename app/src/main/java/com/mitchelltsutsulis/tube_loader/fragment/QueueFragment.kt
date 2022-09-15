@@ -42,17 +42,17 @@ class QueueFragment : Fragment() {
     }
 
     private fun getQueueStatus() {
-        val authToken = (requireActivity().application as App).basicAuthStr
+        val app = (requireActivity().application as App)
         val url = Uri.Builder()
-            .scheme(getString(R.string.server_protocol))
-            .encodedAuthority(getString(R.string.server_address))
+            .scheme(app.getServerScheme())
+            .encodedAuthority(app.getServerAuthority())
             .appendPath("queue")
             .build()
             .toString()
         val req = Request.Builder()
             .get()
             .url(url)
-            .addHeader("Authorization", "Basic $authToken")
+            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
             .build()
         httpClient.newCall(req).enqueue(GetQueueStateCallback(this))
     }
@@ -97,17 +97,17 @@ class QueueFragment : Fragment() {
     }
 
     private fun setQueueStatus(queueButton: View) {
-        val authToken = (requireActivity().application as App).basicAuthStr
+        val app = (requireActivity().application as App)
         val url = Uri.Builder()
-            .scheme(getString(R.string.server_protocol))
-            .encodedAuthority(getString(R.string.server_address))
+            .scheme(app.getServerScheme())
+            .encodedAuthority(app.getServerAuthority())
             .appendPath("queue")
             .build()
             .toString()
         val req = Request.Builder()
             .put("".toRequestBody())
             .url(url)
-            .addHeader("Authorization", "Basic $authToken")
+            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
             .build()
         httpClient.newCall(req).enqueue(SetQueueStateCallback(this, (queueButton as Button)))
     }
@@ -162,10 +162,10 @@ class QueueFragment : Fragment() {
         if (!isAdded) return
         val loadingSpinner = requireView().findViewById<ProgressBar>(R.id.loading_spinner)
         requireActivity().runOnUiThread { loadingSpinner.visibility = View.VISIBLE }
-        val authToken = (requireActivity().application as App).basicAuthStr
+        val app = (requireActivity().application as App)
         val url = Uri.Builder()
-            .scheme(getString(R.string.server_protocol))
-            .encodedAuthority(getString(R.string.server_address))
+            .scheme(app.getServerScheme())
+            .encodedAuthority(app.getServerAuthority())
             .appendPath("videos")
             .appendPath("not")
             .appendPath("downloaded")
@@ -176,7 +176,7 @@ class QueueFragment : Fragment() {
         val req = Request.Builder()
             .get()
             .url(url)
-            .addHeader("Authorization", "Basic $authToken")
+            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
             .build()
         httpClient.newCall(req).enqueue(GetQueueCallback(this, loadingSpinner))
     }
@@ -234,10 +234,10 @@ class QueueFragment : Fragment() {
     }
 
     private fun toggleQueuedState(item: Video) {
-        val authToken = (requireActivity().application as App).basicAuthStr
+        val app = (requireActivity().application as App)
         val url = Uri.Builder()
-            .scheme(getString(R.string.server_protocol))
-            .encodedAuthority(getString(R.string.server_address))
+            .scheme(app.getServerScheme())
+            .encodedAuthority(app.getServerAuthority())
             .appendPath("video")
             .appendPath(item.backendId.toString())
             .appendPath("queued")
@@ -246,7 +246,7 @@ class QueueFragment : Fragment() {
         val req = Request.Builder()
             .put("".toRequestBody())
             .url(url)
-            .addHeader("Authorization", "Basic $authToken")
+            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
             .build()
         httpClient.newCall(req).enqueue(ToggleQueueStateCallback(this, item))
     }

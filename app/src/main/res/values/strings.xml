@@ -1,20 +1,22 @@
 <resources>
     <string name="app_name">Tube Loader</string>
+    <string name="login">Login</string>
+    <string name="loading">Loading…</string>
     <string name="search_field">Search</string>
     <string name="queue_checkbox">Queue Video</string>
     <string name="add_video">Add 2 System</string>
     <string name="search_menu">Search</string>
     <string name="queue_menu">Queue</string>
     <string name="download_menu">Downloaded</string>
-    <string name="server_protocol">http</string>
-    <string name="server_address">192.168.1.38:8383</string>
+    <string name="server">https://tube_loader.example.com</string>
     <string name="queued_button">QUEUED</string>
     <string name="un_queued_button">UN-QUEUED</string>
     <string name="delete_button">DELETE</string>
     <string name="queue_loading">Queue Loading</string>
     <string name="queue_stop">Queue Stopped</string>
     <string name="queue_running">Queue Running</string>
-    <string name="username">username</string>
-    <string name="password">password</string>
-    <string name="youtube_api_key">API_KEY_HERE</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="video_thumbnail">Video Thumbnail</string>
+    <string name="logout">Logout</string>
 </resources>

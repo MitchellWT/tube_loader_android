@@ -50,10 +50,10 @@ class VideoActivity : AppCompatActivity() {
     }
 
     private fun addToSystem(video: Video) {
-        val authToken = (application as App).basicAuthStr
+        val app = (application as App)
         val url = Uri.Builder()
-            .scheme(getString(R.string.server_protocol))
-            .encodedAuthority(getString(R.string.server_address))
+            .scheme(app.getServerScheme())
+            .encodedAuthority(app.getServerAuthority())
             .appendPath("video")
             .build()
             .toString()
@@ -66,7 +66,7 @@ class VideoActivity : AppCompatActivity() {
         val req = Request.Builder()
             .post(body)
             .url(url)
-            .addHeader("Authorization", "Basic $authToken")
+            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
             .build()
         httpClient.newCall(req).enqueue(AddSystemCallback(this))
     }
