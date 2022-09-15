@@ -16,4 +16,5 @@
     <string name="queue_running">Queue Running</string>
     <string name="username">username</string>
     <string name="password">password</string>
+    <string name="youtube_api_key">API_KEY_HERE</string>
 </resources>
