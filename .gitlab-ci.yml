@@ -9,7 +9,7 @@ unit-test:
     - export ANDROID_HOME=/home/gradle/Android
     - export GRADLE_USER_HOME=`pwd`/.gradle
   script:
-    - gradle clean test --info
+    - gradle clean testDebugUnitTest --info
 
 cache:
   paths:
