@@ -3,9 +3,8 @@ unit-test:
   stage: build
   timeout: 10 minutes
   variables:
-    # GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false"
   before_script:
-    # - apk update
     - export ANDROID_HOME=/home/gradle/Android
     - export GRADLE_USER_HOME=`pwd`/.gradle
   script:
