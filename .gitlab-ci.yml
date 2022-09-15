@@ -1,5 +1,5 @@
 unit-test:
-  image: gradle:alpine
+  image: registry.mitchelltsutsulis.com/mitchellwt/tube_loader_android_build_container:latest
   stage: build
   timeout: 10 minutes
   variables:
