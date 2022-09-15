@@ -52,42 +52,47 @@ class DownloadedFragment : Fragment() {
             .url(url)
             .addHeader("Authorization", "Basic $authToken")
             .build()
-        httpClient.newCall(req).enqueue(object: Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.i("GET DOWNLOAD REQ FAIL", e.message.toString())
-                if (!isAdded || view == null || activity == null) return
-                val activity = requireActivity()
-                activity.runOnUiThread { loadingSpinner.visibility = View.GONE }
+        httpClient.newCall(req).enqueue(GetDownloadedCallback(this, loadingSpinner))
+    }
+
+    class GetDownloadedCallback(
+        private val downFrag: DownloadedFragment,
+        private val loadSpin: ProgressBar
+    ) : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.i("GET DOWNLOAD REQ FAIL", e.message.toString())
+            if (!downFrag.isAdded || downFrag.view == null || downFrag.activity == null) return
+            val activity = downFrag.requireActivity()
+            activity.runOnUiThread { loadSpin.visibility = View.GONE }
+            Snackbar.make(
+                downFrag.requireView(),
+                "Failed to load downloaded videos! Please check your connection!",
+                Snackbar.LENGTH_SHORT
+            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            if (!downFrag.isAdded || downFrag.view == null || downFrag.activity == null) return
+            val activity = downFrag.requireActivity()
+            if (!response.isSuccessful) {
+                Log.i(
+                    "GET DOWNLOAD REQ FAIL",
+                    "Status code: ${response.code}, message: ${response.message}"
+                )
                 Snackbar.make(
-                    requireView(),
+                    downFrag.requireView(),
                     "Failed to load downloaded videos! Please check your connection!",
                     Snackbar.LENGTH_SHORT
                 ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+                return
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (!isAdded || view == null || activity == null) return
-                val activity = requireActivity()
-                if (!response.isSuccessful) {
-                    Log.i(
-                        "GET DOWNLOAD REQ FAIL",
-                        "Status code: ${response.code}, message: ${response.message}"
-                    )
-                    Snackbar.make(
-                        requireView(),
-                        "Failed to load downloaded videos! Please check your connection!",
-                        Snackbar.LENGTH_SHORT
-                    ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
-                    return
-                }
-                val videos = objectMapper.readTree(response.body?.string())
-                val res = Video.jsonSeqToList(videos.asSequence())
-                activity.runOnUiThread {
-                    loadingSpinner.visibility = View.GONE
-                    updateRecycler(res)
-                }
+            val videos = downFrag.objectMapper.readTree(response.body?.string())
+            val res = Video.jsonSeqToList(videos.asSequence())
+            activity.runOnUiThread {
+                loadSpin.visibility = View.GONE
+                downFrag.updateRecycler(res)
             }
-        })
+        }
     }
 
     private fun updateRecycler(videos: List<Video>) {
@@ -112,42 +117,45 @@ class DownloadedFragment : Fragment() {
             .url(url)
             .addHeader("Authorization", "Basic $authToken")
             .build()
-        httpClient.newCall(req).enqueue(object: Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.i("DELETE REQ FAIL", e.message.toString())
-                if (!isAdded || view == null) return
-                val activity = requireActivity()
+        httpClient.newCall(req).enqueue(DeleteVideoCallback(this, item))
+    }
+
+    class DeleteVideoCallback(private val downFrag: DownloadedFragment, private val item: Video) :
+        Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.i("DELETE REQ FAIL", e.message.toString())
+            if (!downFrag.isAdded || downFrag.view == null) return
+            val activity = downFrag.requireActivity()
+            Snackbar.make(
+                downFrag.requireView(),
+                "${item.title} has NOT been deleted! Please try again!",
+                Snackbar.LENGTH_SHORT
+            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            if (!downFrag.isAdded || downFrag.view == null || downFrag.activity == null) return
+            val activity = downFrag.requireActivity()
+            if (!response.isSuccessful) {
+                Log.i(
+                    "DELETE REQ FAIL",
+                    "Status code: ${response.code}, message: ${response.message}"
+                )
                 Snackbar.make(
-                    requireView(),
+                    downFrag.requireView(),
                     "${item.title} has NOT been deleted! Please try again!",
                     Snackbar.LENGTH_SHORT
                 ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+                return
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (!isAdded || view == null || activity == null) return
-                val activity = requireActivity()
-                if (!response.isSuccessful) {
-                    Log.i(
-                        "DELETE REQ FAIL",
-                        "Status code: ${response.code}, message: ${response.message}"
-                    )
-                    Snackbar.make(
-                        requireView(),
-                        "${item.title} has NOT been deleted! Please try again!",
-                        Snackbar.LENGTH_SHORT
-                    ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
-                    return
-                }
-                val index = videoAdapter.getItemIndex(item)
-                videoAdapter.removeItem(index)
-                activity.runOnUiThread { videoAdapter.notifyItemRemoved(index) }
-                Snackbar.make(
-                    requireView(),
-                    "${item.title} has been deleted!",
-                    Snackbar.LENGTH_SHORT
-                ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
-            }
-        })
+            val index = downFrag.videoAdapter.getItemIndex(item)
+            downFrag.videoAdapter.removeItem(index)
+            activity.runOnUiThread { downFrag.videoAdapter.notifyItemRemoved(index) }
+            Snackbar.make(
+                downFrag.requireView(),
+                "${item.title} has been deleted!",
+                Snackbar.LENGTH_SHORT
+            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+        }
     }
 }

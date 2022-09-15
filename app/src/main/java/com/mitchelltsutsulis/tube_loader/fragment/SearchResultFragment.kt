@@ -21,7 +21,6 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
 class SearchResultFragment: Fragment() {
-    private lateinit var loadingSpinner: ProgressBar
     private lateinit var url: String
     private var searchString = ""
     private val httpClient = OkHttpClient()
@@ -57,8 +56,8 @@ class SearchResultFragment: Fragment() {
     override fun onStart() {
         super.onStart()
         if (!paused.get() && searchString.isNotEmpty()) {
-            loadingSpinner = requireView().findViewById(R.id.loading_spinner)
-            youtubeSearch()
+            val loadingSpinner = requireView().findViewById<ProgressBar>(R.id.loading_spinner)
+            youtubeSearch(loadingSpinner)
         }
     }
 
@@ -67,47 +66,49 @@ class SearchResultFragment: Fragment() {
         paused.set(true)
     }
 
-    private fun youtubeSearch() {
+    private fun youtubeSearch(loadingSpinner: ProgressBar) {
         loadingSpinner.visibility = View.VISIBLE
         val req = Request.Builder()
             .url(url)
             .build()
-        httpClient.newCall(req).enqueue(object: Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.i("API REQ FAIL", e.message.toString())
-                if (!isAdded || view == null || activity == null) return
-                val activity = requireActivity()
-                activity.runOnUiThread { loadingSpinner.visibility = View.GONE }
+        httpClient.newCall(req).enqueue(YoutubeSearchCallback(this, loadingSpinner))
+    }
+
+    class YoutubeSearchCallback(private val seaResFrag: SearchResultFragment, private val loadSpin: ProgressBar) : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.i("API REQ FAIL", e.message.toString())
+            if (!seaResFrag.isAdded || seaResFrag.view == null || seaResFrag.activity == null) return
+            val activity = seaResFrag.requireActivity()
+            activity.runOnUiThread { loadSpin.visibility = View.GONE }
+            Snackbar.make(
+                seaResFrag.requireView(),
+                "Unable to search youtube! Please check your connection!",
+                Snackbar.LENGTH_SHORT
+            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            if (!seaResFrag.isAdded || seaResFrag.view == null || seaResFrag.activity == null) return
+            val activity = seaResFrag.requireActivity()
+            if (!response.isSuccessful) {
+                Log.i(
+                    "API REQ FAIL",
+                    "Status code: ${response.code}, message: ${response.message}"
+                )
                 Snackbar.make(
-                    requireView(),
+                    seaResFrag.requireView(),
                     "Unable to search youtube! Please check your connection!",
                     Snackbar.LENGTH_SHORT
                 ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+                return
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (!isAdded || view == null || activity == null) return
-                val activity = requireActivity()
-                if (!response.isSuccessful) {
-                    Log.i(
-                        "API REQ FAIL",
-                        "Status code: ${response.code}, message: ${response.message}"
-                    )
-                    Snackbar.make(
-                        requireView(),
-                        "Unable to search youtube! Please check your connection!",
-                        Snackbar.LENGTH_SHORT
-                    ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
-                    return
-                }
-                val videos = objectMapper.readTree(response.body?.string()).get("items")
-                val searchRes = youtubeResToVideoList(videos.asSequence())
-                activity.runOnUiThread {
-                    loadingSpinner.visibility = View.GONE
-                    updateRecycler(searchRes)
-                }
+            val videos = seaResFrag.objectMapper.readTree(response.body?.string()).get("items")
+            val searchRes = seaResFrag.youtubeResToVideoList(videos.asSequence())
+            activity.runOnUiThread {
+                loadSpin.visibility = View.GONE
+                seaResFrag.updateRecycler(searchRes)
             }
-        })
+        }
     }
 
     private fun youtubeResToVideoList(videos: Sequence<JsonNode>) = videos.map {

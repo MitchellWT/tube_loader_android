@@ -5,5 +5,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "tube_loader"
+rootProject.name = "tube_loader_android"
 include ':app'

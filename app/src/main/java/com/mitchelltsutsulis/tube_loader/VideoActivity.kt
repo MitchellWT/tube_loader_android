@@ -68,37 +68,35 @@ class VideoActivity : AppCompatActivity() {
             .url(url)
             .addHeader("Authorization", "Basic $authToken")
             .build()
-        httpClient.newCall(req).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.i("ADD VIDEO FAIL", e.message.toString())
-                exit()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                Log.i(
-                    "ADD VIDEO RES",
-                    "Status code: ${response.code}, message: ${response.message}"
-                )
-                exit(response.code)
-            }
-        })
+        httpClient.newCall(req).enqueue(AddSystemCallback(this))
     }
 
-    private fun exit(statusCode: Int = 400) {
+    fun exit(statusCode: Int = 500) {
         setResult(RESULT_OK, intent.putExtra("statusCode", statusCode))
         finish()
     }
 
-    class Contract : ActivityResultContract<Video, Int>() {
-        override fun createIntent(context: Context, input: Video): Intent {
-            return Intent(context, VideoActivity::class.java).apply {
-                putExtra("video", input)
-            }
+
+    class AddSystemCallback(private val videoActivity: VideoActivity) : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.i("ADD VIDEO FAIL", e.message.toString())
+            videoActivity.exit(500)
         }
 
-        override fun parseResult(resultCode: Int, intent: Intent?): Int {
-            if (intent == null) return 400
-            return intent.getIntExtra("statusCode", 400)
+        override fun onResponse(call: Call, response: Response) {
+            Log.i(
+                "ADD VIDEO RES",
+                "Status code: ${response.code}, message: ${response.message}"
+            )
+            videoActivity.exit(response.code)
         }
+    }
+
+    class Contract : ActivityResultContract<Video, Int>() {
+        override fun createIntent(context: Context, input: Video) =
+            Intent(context, VideoActivity::class.java).apply { putExtra("video", input) }
+
+        override fun parseResult(resultCode: Int, intent: Intent?) =
+            intent?.getIntExtra("statusCode", 400) ?: 400
     }
 }
