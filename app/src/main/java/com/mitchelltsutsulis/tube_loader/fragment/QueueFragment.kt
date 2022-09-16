@@ -42,74 +42,88 @@ class QueueFragment : Fragment() {
     }
 
     private fun getQueueStatus() {
-        val app = (requireActivity().application as App)
-        val url = Uri.Builder()
-            .scheme(app.getServerScheme())
-            .encodedAuthority(app.getServerAuthority())
-            .appendPath("queue")
-            .build()
-            .toString()
-        val req = Request.Builder()
-            .get()
-            .url(url)
-            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
-            .build()
-        httpClient.newCall(req).enqueue(GetQueueStateCallback(this))
+        try {
+            val app = (requireActivity().application as App)
+            val url = Uri.Builder()
+                .scheme(app.getServerScheme())
+                .encodedAuthority(app.getServerAuthority())
+                .appendPath("queue")
+                .build()
+                .toString()
+            val req = Request.Builder()
+                .get()
+                .url(url)
+                .addHeader("Authorization", "Basic ${app.getAuthToken()}")
+                .build()
+            httpClient.newCall(req).enqueue(GetQueueStateCallback(this))
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
+        }
     }
 
     class GetQueueStateCallback(private val queueFrag: QueueFragment) : Callback {
         override fun onFailure(call: Call, e: IOException) {
             Log.i("GET QUEUE STATE REQ FAIL", e.message.toString())
-            if (!queueFrag.isAdded || queueFrag.view == null || queueFrag.activity == null) return
-            val activity = queueFrag.requireActivity()
-            Snackbar.make(
-                queueFrag.requireView(),
-                "Unable to get queue state! Please check your connection!",
-                Snackbar.LENGTH_SHORT
-            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            if (!queueFrag.isAdded || queueFrag.view == null || queueFrag.activity == null) return
-            if (!response.isSuccessful) {
-                Log.i(
-                    "GET QUEUE STATE REQ FAIL",
-                    "Status code: ${response.code}, message: ${response.message}"
-                )
+            try {
+                val activity = queueFrag.requireActivity()
                 Snackbar.make(
                     queueFrag.requireView(),
                     "Unable to get queue state! Please check your connection!",
                     Snackbar.LENGTH_SHORT
-                ).setAnchorView(
-                    queueFrag.requireActivity().findViewById(R.id.bottom_navigation_bar)
-                ).show()
-                return
+                ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
             }
-            val queueState = queueFrag.objectMapper
-                .readValue<Map<String, String>>(response.body?.string() ?: "")
-                .getValue("active")
-                .toBoolean()
-            val queueButton = queueFrag.requireView().findViewById<Button>(R.id.queue_status)
-            queueButton.text =
-                queueFrag.getString(if (queueState) R.string.queue_running else R.string.queue_stop)
-            queueButton.setOnClickListener { queueFrag.setQueueStatus(it) }
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            try {
+                if (!response.isSuccessful) {
+                    Log.i(
+                        "GET QUEUE STATE REQ FAIL",
+                        "Status code: ${response.code}, message: ${response.message}"
+                    )
+                    Snackbar.make(
+                        queueFrag.requireView(),
+                        "Unable to get queue state! Please check your connection!",
+                        Snackbar.LENGTH_SHORT
+                    ).setAnchorView(
+                        queueFrag.requireActivity().findViewById(R.id.bottom_navigation_bar)
+                    ).show()
+                    return
+                }
+                val queueState = queueFrag.objectMapper
+                    .readValue<Map<String, String>>(response.body?.string() ?: "")
+                    .getValue("active")
+                    .toBoolean()
+                val queueButton = queueFrag.requireView().findViewById<Button>(R.id.queue_status)
+                queueButton.text =
+                    queueFrag.getString(if (queueState) R.string.queue_running else R.string.queue_stop)
+                queueButton.setOnClickListener { queueFrag.setQueueStatus(it) }
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
+            }
         }
     }
 
     private fun setQueueStatus(queueButton: View) {
-        val app = (requireActivity().application as App)
-        val url = Uri.Builder()
-            .scheme(app.getServerScheme())
-            .encodedAuthority(app.getServerAuthority())
-            .appendPath("queue")
-            .build()
-            .toString()
-        val req = Request.Builder()
-            .put("".toRequestBody())
-            .url(url)
-            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
-            .build()
-        httpClient.newCall(req).enqueue(SetQueueStateCallback(this, (queueButton as Button)))
+        try {
+            val app = (requireActivity().application as App)
+            val url = Uri.Builder()
+                .scheme(app.getServerScheme())
+                .encodedAuthority(app.getServerAuthority())
+                .appendPath("queue")
+                .build()
+                .toString()
+            val req = Request.Builder()
+                .put("".toRequestBody())
+                .url(url)
+                .addHeader("Authorization", "Basic ${app.getAuthToken()}")
+                .build()
+            httpClient.newCall(req).enqueue(SetQueueStateCallback(this, (queueButton as Button)))
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
+        }
     }
 
     class SetQueueStateCallback(
@@ -118,67 +132,77 @@ class QueueFragment : Fragment() {
     ) : Callback {
         override fun onFailure(call: Call, e: IOException) {
             Log.i("TOGGLE QUEUE STATE REQ FAIL", e.message.toString())
-            if (!queueFrag.isAdded || queueFrag.view == null) return
-            val activity = queueFrag.requireActivity()
-            Snackbar.make(
-                queueFrag.requireView(),
-                "Unable to change queue state! Please check your connection!",
-                Snackbar.LENGTH_SHORT
-            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+            try {
+                val activity = queueFrag.requireActivity()
+                Snackbar.make(
+                    queueFrag.requireView(),
+                    "Unable to change queue state! Please check your connection!",
+                    Snackbar.LENGTH_SHORT
+                ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
+            }
         }
 
         override fun onResponse(call: Call, response: Response) {
-            if (!queueFrag.isAdded || queueFrag.view == null || queueFrag.activity == null) return
-            if (!response.isSuccessful) {
-                Log.i(
-                    "GET QUEUE STATE REQ FAIL",
-                    "Status code: ${response.code}, message: ${response.message}"
-                )
+            try {
+                if (!response.isSuccessful) {
+                    Log.i(
+                        "GET QUEUE STATE REQ FAIL",
+                        "Status code: ${response.code}, message: ${response.message}"
+                    )
+                    Snackbar.make(
+                        queueFrag.requireView(),
+                        "Unable to get queue state! Please check your connection!",
+                        Snackbar.LENGTH_SHORT
+                    ).setAnchorView(
+                        queueFrag.requireActivity().findViewById(R.id.bottom_navigation_bar)
+                    ).show()
+                    return
+                }
+                val queueState = queueFrag.objectMapper
+                    .readValue<Map<String, String>>(response.body?.string() ?: "")
+                    .getValue("active")
+                    .toBoolean()
+                queueButton.text =
+                    queueFrag.getString(if (queueState) R.string.queue_running else R.string.queue_stop)
                 Snackbar.make(
                     queueFrag.requireView(),
-                    "Unable to get queue state! Please check your connection!",
+                    if (queueState) "Queue started!" else "Queue stopped!",
                     Snackbar.LENGTH_SHORT
                 ).setAnchorView(
                     queueFrag.requireActivity().findViewById(R.id.bottom_navigation_bar)
                 ).show()
-                return
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
             }
-            val queueState = queueFrag.objectMapper
-                .readValue<Map<String, String>>(response.body?.string() ?: "")
-                .getValue("active")
-                .toBoolean()
-            queueButton.text =
-                queueFrag.getString(if (queueState) R.string.queue_running else R.string.queue_stop)
-            Snackbar.make(
-                queueFrag.requireView(),
-                if (queueState) "Queue started!" else "Queue stopped!",
-                Snackbar.LENGTH_SHORT
-            ).setAnchorView(queueFrag.requireActivity().findViewById(R.id.bottom_navigation_bar))
-                .show()
         }
     }
 
     private fun getQueue() {
-        if (!isAdded) return
-        val loadingSpinner = requireView().findViewById<ProgressBar>(R.id.loading_spinner)
-        requireActivity().runOnUiThread { loadingSpinner.visibility = View.VISIBLE }
-        val app = (requireActivity().application as App)
-        val url = Uri.Builder()
-            .scheme(app.getServerScheme())
-            .encodedAuthority(app.getServerAuthority())
-            .appendPath("videos")
-            .appendPath("not")
-            .appendPath("downloaded")
-            .appendQueryParameter("amount", "50")
-            .appendQueryParameter("page", "0")
-            .build()
-            .toString()
-        val req = Request.Builder()
-            .get()
-            .url(url)
-            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
-            .build()
-        httpClient.newCall(req).enqueue(GetQueueCallback(this, loadingSpinner))
+        try {
+            val loadingSpinner = requireView().findViewById<ProgressBar>(R.id.loading_spinner)
+            requireActivity().runOnUiThread { loadingSpinner.visibility = View.VISIBLE }
+            val app = (requireActivity().application as App)
+            val url = Uri.Builder()
+                .scheme(app.getServerScheme())
+                .encodedAuthority(app.getServerAuthority())
+                .appendPath("videos")
+                .appendPath("not")
+                .appendPath("downloaded")
+                .appendQueryParameter("amount", "50")
+                .appendQueryParameter("page", "0")
+                .build()
+                .toString()
+            val req = Request.Builder()
+                .get()
+                .url(url)
+                .addHeader("Authorization", "Basic ${app.getAuthToken()}")
+                .build()
+            httpClient.newCall(req).enqueue(GetQueueCallback(this, loadingSpinner))
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
+        }
     }
 
     class GetQueueCallback(
@@ -187,37 +211,43 @@ class QueueFragment : Fragment() {
     ) : Callback {
         override fun onFailure(call: Call, e: IOException) {
             Log.i("GET QUEUE REQ FAIL", e.message.toString())
-            if (!queueFrag.isAdded || queueFrag.view == null || queueFrag.activity == null) return
-            val activity = queueFrag.requireActivity()
-            activity.runOnUiThread { loadSpin.visibility = View.GONE }
-            Snackbar.make(
-                queueFrag.requireView(),
-                "Unable to get queue data! Please check your connection!",
-                Snackbar.LENGTH_SHORT
-            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            if (!queueFrag.isAdded || queueFrag.view == null || queueFrag.activity == null) return
-            if (!response.isSuccessful) {
-                Log.i(
-                    "GET QUEUE REQ FAIL",
-                    "Status code: ${response.code}, message: ${response.message}"
-                )
+            try {
+                val activity = queueFrag.requireActivity()
+                activity.runOnUiThread { loadSpin.visibility = View.GONE }
                 Snackbar.make(
                     queueFrag.requireView(),
                     "Unable to get queue data! Please check your connection!",
                     Snackbar.LENGTH_SHORT
-                ).setAnchorView(
-                    queueFrag.requireActivity().findViewById(R.id.bottom_navigation_bar)
-                ).show()
-                return
+                ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
             }
-            val videos = queueFrag.objectMapper.readTree(response.body?.string())
-            val res = Video.jsonSeqToList(videos.asSequence())
-            queueFrag.requireActivity().runOnUiThread {
-                loadSpin.visibility = View.GONE
-                queueFrag.updateRecycler(res)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            try {
+                if (!response.isSuccessful) {
+                    Log.i(
+                        "GET QUEUE REQ FAIL",
+                        "Status code: ${response.code}, message: ${response.message}"
+                    )
+                    Snackbar.make(
+                        queueFrag.requireView(),
+                        "Unable to get queue data! Please check your connection!",
+                        Snackbar.LENGTH_SHORT
+                    ).setAnchorView(
+                        queueFrag.requireActivity().findViewById(R.id.bottom_navigation_bar)
+                    ).show()
+                    return
+                }
+                val videos = queueFrag.objectMapper.readTree(response.body?.string())
+                val res = Video.jsonSeqToList(videos.asSequence())
+                queueFrag.requireActivity().runOnUiThread {
+                    loadSpin.visibility = View.GONE
+                    queueFrag.updateRecycler(res)
+                }
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
             }
         }
     }
@@ -234,63 +264,73 @@ class QueueFragment : Fragment() {
     }
 
     private fun toggleQueuedState(item: Video) {
-        val app = (requireActivity().application as App)
-        val url = Uri.Builder()
-            .scheme(app.getServerScheme())
-            .encodedAuthority(app.getServerAuthority())
-            .appendPath("video")
-            .appendPath(item.backendId.toString())
-            .appendPath("queued")
-            .build()
-            .toString()
-        val req = Request.Builder()
-            .put("".toRequestBody())
-            .url(url)
-            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
-            .build()
-        httpClient.newCall(req).enqueue(ToggleQueueStateCallback(this, item))
+        try {
+            val app = (requireActivity().application as App)
+            val url = Uri.Builder()
+                .scheme(app.getServerScheme())
+                .encodedAuthority(app.getServerAuthority())
+                .appendPath("video")
+                .appendPath(item.backendId.toString())
+                .appendPath("queued")
+                .build()
+                .toString()
+            val req = Request.Builder()
+                .put("".toRequestBody())
+                .url(url)
+                .addHeader("Authorization", "Basic ${app.getAuthToken()}")
+                .build()
+            httpClient.newCall(req).enqueue(ToggleQueueStateCallback(this, item))
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
+        }
     }
 
     class ToggleQueueStateCallback(private val queueFrag: QueueFragment, private val item: Video) :
         Callback {
         override fun onFailure(call: Call, e: IOException) {
             Log.i("TOGGLE REQ FAIL", e.message.toString())
-            if (!queueFrag.isAdded || queueFrag.view == null || queueFrag.activity == null) return
-            val activity = queueFrag.requireActivity()
-            Snackbar.make(
-                queueFrag.requireView(),
-                "${item.title} has NOT been updated! Please check you connection!",
-                Snackbar.LENGTH_SHORT
-            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+            try {
+                val activity = queueFrag.requireActivity()
+                Snackbar.make(
+                    queueFrag.requireView(),
+                    "${item.title} has NOT been updated! Please check you connection!",
+                    Snackbar.LENGTH_SHORT
+                ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
+            }
         }
 
         override fun onResponse(call: Call, response: Response) {
-            if (!queueFrag.isAdded || queueFrag.view == null || queueFrag.activity == null) return
-            val activity = queueFrag.requireActivity()
-            if (!response.isSuccessful) {
-                Log.i(
-                    "TOGGLE REQ FAIL",
-                    "Status code: ${response.code}, message: ${response.message}"
-                )
+            try {
+                val activity = queueFrag.requireActivity()
+                if (!response.isSuccessful) {
+                    Log.i(
+                        "TOGGLE REQ FAIL",
+                        "Status code: ${response.code}, message: ${response.message}"
+                    )
+                    Snackbar.make(
+                        queueFrag.requireView(),
+                        "Unable to get queue data! Please check your connection!",
+                        Snackbar.LENGTH_SHORT
+                    ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
+                    return
+                }
+                val index = queueFrag.videoAdapter.getItemIndex(item)
+                val queueState = queueFrag.objectMapper
+                    .readValue<Map<String, String>>(response.body?.string() ?: "")
+                    .getValue("active")
+                    .toBoolean()
+                item.queued = queueState
+                activity.runOnUiThread { queueFrag.videoAdapter.notifyItemChanged(index) }
                 Snackbar.make(
                     queueFrag.requireView(),
-                    "Unable to get queue data! Please check your connection!",
+                    if (queueState) "${item.title} has been queued!" else "${item.title} has been un-queued",
                     Snackbar.LENGTH_SHORT
                 ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
-                return
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
             }
-            val index = queueFrag.videoAdapter.getItemIndex(item)
-            val queueState = queueFrag.objectMapper
-                .readValue<Map<String, String>>(response.body?.string() ?: "")
-                .getValue("active")
-                .toBoolean()
-            item.queued = queueState
-            activity.runOnUiThread { queueFrag.videoAdapter.notifyItemChanged(index) }
-            Snackbar.make(
-                queueFrag.requireView(),
-                if (queueState) "${item.title} has been queued!" else "${item.title} has been un-queued",
-                Snackbar.LENGTH_SHORT
-            ).setAnchorView(activity.findViewById(R.id.bottom_navigation_bar)).show()
         }
     }
 

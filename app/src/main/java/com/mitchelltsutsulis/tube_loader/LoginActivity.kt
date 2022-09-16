@@ -20,20 +20,31 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        try {
+            val usernameView = findViewById<TextView>(R.id.username)
+            val passwordView = findViewById<TextView>(R.id.password)
+            val serverView = findViewById<TextView>(R.id.server)
+            val loginButton = findViewById<Button>(R.id.login_button)
 
-        val usernameView = findViewById<TextView>(R.id.username)
-        val passwordView = findViewById<TextView>(R.id.password)
-        val serverView = findViewById<TextView>(R.id.server)
-        val loginButton = findViewById<Button>(R.id.login_button)
-
-        loginButton.setOnClickListener {
-            val username = usernameView.text.toString()
-            val password = passwordView.text.toString()
-            val serverParts = serverView.text.toString().split("://")
-            val serverScheme = serverParts[0]
-            val serverAuthority = serverParts[1]
-            loginButton.text = getString(R.string.loading)
-            login(username, password, serverScheme, serverAuthority)
+            loginButton.setOnClickListener {
+                val username = usernameView.text.toString()
+                val password = passwordView.text.toString()
+                val serverParts = serverView.text.toString().split("://")
+                if (serverParts.size != 2) {
+                    Snackbar.make(
+                        loginButton,
+                        "Server is invalid! Please re-enter server!",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+                val serverScheme = serverParts[0]
+                val serverAuthority = serverParts[1]
+                loginButton.text = getString(R.string.loading)
+                login(username, password, serverScheme, serverAuthority)
+            }
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
         }
     }
 
@@ -43,20 +54,31 @@ class LoginActivity : AppCompatActivity() {
         serverScheme: String,
         serverAuthority: String
     ) {
-        val authToken = Base64.getEncoder().encodeToString("$username:$password".toByteArray())
-        val url = Uri.Builder()
-            .scheme(serverScheme)
-            .encodedAuthority(serverAuthority)
-            .appendPath("token")
-            .build()
-            .toString()
-        val req = Request.Builder()
-            .get()
-            .url(url)
-            .addHeader("Authorization", "Basic $authToken")
-            .build()
-        httpClient.newCall(req)
-            .enqueue(LoginCallback(this, authToken, serverScheme, serverAuthority))
+        try {
+            val authToken = Base64.getEncoder().encodeToString("$username:$password".toByteArray())
+            val url = Uri.Builder()
+                .scheme(serverScheme)
+                .encodedAuthority(serverAuthority)
+                .appendPath("token")
+                .build()
+                .toString()
+            val req = Request.Builder()
+                .get()
+                .url(url)
+                .addHeader("Authorization", "Basic $authToken")
+                .build()
+            httpClient.newCall(req)
+                .enqueue(LoginCallback(this, authToken, serverScheme, serverAuthority))
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
+            val loginButton = findViewById<Button>(R.id.login_button)
+            loginButton.text = getString(R.string.login)
+            Snackbar.make(
+                loginButton,
+                "Login failed! Please try again!",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
     }
 
     class LoginCallback(
@@ -67,37 +89,48 @@ class LoginActivity : AppCompatActivity() {
     ) : Callback {
         override fun onFailure(call: Call, e: IOException) {
             Log.i("GET TOKEN FAIL", e.message.toString())
-            loginAct.findViewById<Button>(R.id.login_button).text =
-                loginAct.getString(R.string.login)
-            Snackbar.make(
-                loginAct.findViewById(R.id.content),
-                "Unable to get token! Please check your connection!",
-                Snackbar.LENGTH_SHORT
-            ).setAnchorView(loginAct.findViewById(R.id.login_button)).show()
+            try {
+                val loginButton = loginAct.findViewById<Button>(R.id.login_button)
+                loginButton.text = loginAct.getString(R.string.login)
+                Snackbar.make(
+                    loginButton,
+                    "Unable to get token! Please check your connection!",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
+            }
         }
 
         override fun onResponse(call: Call, response: Response) {
-            if (!response.isSuccessful) {
-                Log.i(
-                    "GET TOKEN FAIL",
-                    "Status code: ${response.code}, message: ${response.message}"
-                )
+            val loginButton = loginAct.findViewById<Button>(R.id.login_button)
+            try {
+                if (!response.isSuccessful) {
+                    Log.i(
+                        "GET TOKEN FAIL",
+                        "Status code: ${response.code}, message: ${response.message}"
+                    )
+                    Snackbar.make(
+                        loginButton,
+                        "Unable to get token! Please check your connection!",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    return
+                }
+                loginButton.text = loginAct.getString(R.string.login)
+                val youtubeToken = loginAct.objectMapper
+                    .readValue<Map<String, String>>(response.body?.string() ?: "")
+                    .getValue("key")
+                    .toString()
+                loginAct.saveAndExit(authToken, youtubeToken, serverScheme, serverAuthority)
+            } catch (e: Exception) {
+                Log.i("EXCEPTION", e.message.toString())
                 Snackbar.make(
-                    loginAct.findViewById(R.id.content),
-                    "Unable to get token! Please check your connection!",
+                    loginButton,
+                    "Error getting response! Please try again!",
                     Snackbar.LENGTH_SHORT
-                ).setAnchorView(
-                    loginAct.findViewById(R.id.bottom_navigation_bar)
                 ).show()
-                return
             }
-            loginAct.findViewById<Button>(R.id.login_button).text =
-                loginAct.getString(R.string.login)
-            val youtubeToken = loginAct.objectMapper
-                .readValue<Map<String, String>>(response.body?.string() ?: "")
-                .getValue("key")
-                .toString()
-            loginAct.saveAndExit(authToken, youtubeToken, serverScheme, serverAuthority)
         }
     }
 

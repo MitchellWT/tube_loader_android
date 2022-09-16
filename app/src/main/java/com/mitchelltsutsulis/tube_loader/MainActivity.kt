@@ -2,6 +2,7 @@ package com.mitchelltsutsulis.tube_loader
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -18,23 +19,27 @@ class MainActivity : AppCompatActivity() {
             val loginIntent = Intent(this, LoginActivity::class.java)
             startActivity(loginIntent)
         }
-
         setContentView(R.layout.activity_main)
 
-        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation_bar)
-        val searchFragment = SearchFragment()
-        val queueFragment = QueueFragment()
-        val downloadedFragment = DownloadedFragment()
+        try {
+            val bottomNavigationView =
+                findViewById<BottomNavigationView>(R.id.bottom_navigation_bar)
+            val searchFragment = SearchFragment()
+            val queueFragment = QueueFragment()
+            val downloadedFragment = DownloadedFragment()
 
-        setFrame(searchFragment)
-        bottomNavigationView.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.bnv_search -> setFrame(searchFragment)
-                R.id.bnv_queue -> setFrame(queueFragment)
-                R.id.bnv_downloaded -> setFrame(downloadedFragment)
-                R.id.bnv_logout -> logout()
+            setFrame(searchFragment)
+            bottomNavigationView.setOnItemSelectedListener {
+                when (it.itemId) {
+                    R.id.bnv_search -> setFrame(searchFragment)
+                    R.id.bnv_queue -> setFrame(queueFragment)
+                    R.id.bnv_downloaded -> setFrame(downloadedFragment)
+                    R.id.bnv_logout -> logout()
+                }
+                true
             }
-            true
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
         }
     }
 
