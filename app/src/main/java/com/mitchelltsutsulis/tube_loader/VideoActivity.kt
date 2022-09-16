@@ -23,24 +23,27 @@ class VideoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video)
+        try {
+            val thumbnail = findViewById<ImageView>(R.id.thumbnail)
+            val videoId = findViewById<TextView>(R.id.videoId)
+            val addButton = findViewById<Button>(R.id.add_button)
+            val title = findViewById<TextView>(R.id.title)
+            val queued = findViewById<CheckBox>(R.id.queued)
+            val video = intent.getParcelableExtra<Video>("video") ?: return
 
-        val thumbnail = findViewById<ImageView>(R.id.thumbnail)
-        val videoId = findViewById<TextView>(R.id.videoId)
-        val addButton = findViewById<Button>(R.id.add_button)
-        val title = findViewById<TextView>(R.id.title)
-        val queued = findViewById<CheckBox>(R.id.queued)
-        val video = intent.getParcelableExtra<Video>("video") ?: return
-
-        title.text = video.title
-        videoId.text = video.videoId
-        Picasso.get().load(video.thumbnail.source)
-            .placeholder(R.drawable.ic_black)
-            .error(R.drawable.ic_black)
-            .into(thumbnail)
-        addButton.setOnClickListener {
-            video.title = title.text.toString()
-            video.queued = queued.isChecked
-            addToSystem(video)
+            title.text = video.title
+            videoId.text = video.videoId
+            Picasso.get().load(video.thumbnail.source)
+                .placeholder(R.drawable.ic_black)
+                .error(R.drawable.ic_black)
+                .into(thumbnail)
+            addButton.setOnClickListener {
+                video.title = title.text.toString()
+                video.queued = queued.isChecked
+                addToSystem(video)
+            }
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
         }
     }
 
@@ -50,25 +53,29 @@ class VideoActivity : AppCompatActivity() {
     }
 
     private fun addToSystem(video: Video) {
-        val app = (application as App)
-        val url = Uri.Builder()
-            .scheme(app.getServerScheme())
-            .encodedAuthority(app.getServerAuthority())
-            .appendPath("video")
-            .build()
-            .toString()
-        val body = """{
+        try {
+            val app = (application as App)
+            val url = Uri.Builder()
+                .scheme(app.getServerScheme())
+                .encodedAuthority(app.getServerAuthority())
+                .appendPath("video")
+                .build()
+                .toString()
+            val body = """{
             "video_id": "${video.videoId}",
             "title": "${video.title}",
             "thumbnail": "${video.thumbnail.source}",
             "queued": ${video.queued}
         }""".toRequestBody()
-        val req = Request.Builder()
-            .post(body)
-            .url(url)
-            .addHeader("Authorization", "Basic ${app.getAuthToken()}")
-            .build()
-        httpClient.newCall(req).enqueue(AddSystemCallback(this))
+            val req = Request.Builder()
+                .post(body)
+                .url(url)
+                .addHeader("Authorization", "Basic ${app.getAuthToken()}")
+                .build()
+            httpClient.newCall(req).enqueue(AddSystemCallback(this))
+        } catch (e: Exception) {
+            Log.i("EXCEPTION", e.message.toString())
+        }
     }
 
     fun exit(statusCode: Int = 500) {
